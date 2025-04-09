@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Government Dashboard{% endblock %}
+{% block body_class %}govt_dashboard{% endblock %}
+
+{% block header_title %}Government Dashboard{% endblock %}
+
+{% block header_actions %}
+    <div class="user-info">
+        <span class="welcome-msg">Welcome, {{ govt_user.name }}</span>
+        <span class="location-info">
+            <i class="fas fa-map-marker-alt"></i> {{ govt_user.location }}
+            {% if govt_user.annual_rainfall %}
+                | 🌧️ {{ govt_user.annual_rainfall }}mm
+            {% endif %}
+            {% if govt_user.average_temperature %}
+                | 🌡️ {{ govt_user.average_temperature }}°C
+            {% endif %}
+        </span>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+{% endblock %}
+
+{% block content %}
+    {% if selected_option %}
+        <div class="card">
+            <form method="POST">
+                <button type="submit" name="go_back" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </form>
+        </div>
+        
+        {% if selected_option == 'analyze' %}
+            <div class="card">
+                <h2 class="card-title">Analyze Farmer Data</h2>
+                <form method="POST" data-ai-processing="true">
+                    <div class="form-group">
+                        <label for="farmer_id" class="form-label">Farmer ID</label>
+                        <input type="text" id="farmer_id" name="farmer_id" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-search"></i> Analyze
+                    </button>
+                </form>
+                
+                {% if farmer_data %}
+                    {% if farmer_details_incomplete %}
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            First save the details of the farmer from farmer login before accessing the suggested crops.
+                        </div>
+                    {% elif crop_options %}
+                        <div class="analysis-results mt-3">
+                            <h3><i class="fas fa-lightbulb"></i> Suggested Crops for Farmer {{ farmer_data.id }}</h3>
+                            <ul class="crop-list">
+                                {% for crop in crop_options %}
+                                    <li>{{ crop }}</li>
+                                {% endfor %}
+                            </ul>
+                            
+                            <form method="POST" action="/save_crop" class="mt-3">
+                                <div class="form-group">
+                                    <label for="selected_crop" class="form-label">Select Crop</label>
+                                    <select name="selected_crop" class="form-control" required>
+                                        {% for crop in crop_options %}
+                                            <option value="{{ crop }}">{{ crop }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <input type="hidden" name="farmer_id" value="{{ farmer_data.id }}">
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="fas fa-save"></i> Save Crop
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if selected_option == 'view_farmer' %}
+            <div class="card">
+                <h2 class="card-title">View Farmer Data</h2>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="farmer_id" class="form-label">Farmer ID</label>
+                        <input type="text" id="farmer_id" name="farmer_id" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-search"></i> View Farmer
+                    </button>
+                </form>
+                
+                {% if farmer_data %}
+                    <div class="farmer-details mt-3">
+                        <div class="detail-actions">
+                            <a href="{{ url_for('admin.edit_farmer', farmer_id=farmer_data.id) }}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Edit Farmer
+                            </a>
+                            <form method="POST" action="{{ url_for('admin.remove_farmer') }}" 
+                                  onsubmit="return confirm('Are you sure you want to remove this farmer?');">
+                                <input type="hidden" name="farmer_id" value="{{ farmer_data.id }}">
+                                <button type="submit" name="remove_farmer" class="btn btn-danger">
+                                    <i class="fas fa-trash-alt"></i> Remove Farmer
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="details-grid">
+                            {% for field in ['soil_type', 'pH_level', 'annual_rainfall', 
+                                           'average_temperature', 'location', 'area', 
+                                           'previous_crop', 'previous_yield', 
+                                           'previous_fertilizer_used', 'nitrogen', 
+                                           'phosphorus', 'potassium', 'organic_carbon', 
+                                           'crop_selected', 'fertilizer_needed', 
+                                           'water_needed', 'disease_detection'] %}
+                                {% if farmer_data[field] %}
+                                    <div class="detail-item">
+                                        <span class="detail-label">{{ field|replace('_', ' ')|title }}:</span>
+                                        <span class="detail-value">{{ farmer_data[field] }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        {% if selected_option == 'view_farmers' %}
+            <div class="card">
+                <h2 class="card-title">Farmers in {{ govt_user.location }}</h2>
+                
+                <div class="search-filter-container">
+                    <form method="GET" action="{{ url_for('government.dashboard') }}" class="search-form">
+                        <input type="hidden" name="option" value="view_farmers">
+                        <div class="form-group">
+                            <div class="input-with-icon">
+                                <i class="fas fa-search"></i>
+                                <input type="text" name="search" placeholder="Search farmers..." 
+                                       value="{{ request.args.get('search', '') }}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="filter-row">
+                            <div class="form-group">
+                                <label class="form-label">Status:</label>
+                                <select name="status" class="form-control">
+                                    <option value="">All Farmers</option>
+                                    <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="incomplete" {% if request.args.get('status') == 'incomplete' %}selected{% endif %}>Incomplete Profile</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Apply
+                            </button>
+                            <a href="{{ url_for('government.dashboard', option='view_farmers') }}" class="btn btn-secondary">
+                                <i class="fas fa-sync-alt"></i> Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                {% if farmers %}
+                    <div class="grid-container">
+                        {% for farmer in farmers %}
+                            <div class="data-card">
+                                <div class="data-card-header">
+                                    <h3><i class="fas fa-user"></i> {{ farmer.id }}</h3>
+                                    <span class="status-badge {% if farmer.soil_type and farmer.crop_selected %}complete{% else %}incomplete{% endif %}">
+                                        {% if farmer.soil_type and farmer.crop_selected %}Active{% else %}Setup Needed{% endif %}
+                                    </span>
+                                </div>
+                                <div class="data-card-body">
+                                    <p><i class="fas fa-user"></i> {{ farmer.name }}</p>
+                                    <p><i class="fas fa-map-marker-alt"></i> {{ farmer.location }}</p>
+                                    {% if farmer.crop_selected %}
+                                        <p><i class="fas fa-seedling"></i> {{ farmer.crop_selected }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="data-card-footer">
+                                    <a href="{{ url_for('admin.edit_farmer', farmer_id=farmer.id) }}" 
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <form method="POST" action="{{ url_for('admin.remove_farmer') }}" 
+                                          onsubmit="return confirm('Remove this farmer?');"
+                                          style="display: inline;">
+                                        <input type="hidden" name="farmer_id" value="{{ farmer.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash-alt"></i> Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No farmers found in your area.
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Add this as another option block -->
+{% if selected_option == 'register_farmer' %}
+<div class="card">
+    <h2 class="card-title">Register New Farmer</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="farmer_name">Farmer Name:</label>
+            <input type="text" id="farmer_name" name="new_farmer_name" class="form-control" placeholder="Enter Farmer Name" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Farmer ID</label>
+            <input type="text" name="new_farmer_id" class="form-control" 
+                   placeholder="Enter unique farmer ID" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Initial Land Area (hectares)</label>
+            <input type="number" step="0.1" name="area_of_land" class="form-control"
+                   placeholder="Optional" min="0">
+        </div>
+        <div class="button-row">
+            <button type="submit" name="register_farmer" class="btn btn-primary">
+                <i class="fas fa-save"></i> Register Farmer
+            </button>
+            <button type="submit" name="go_back" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+        </div>
+    </form>
+</div>
+{% endif %}
+        
+        {% if selected_option == 'area_settings' %}
+            <div class="card">
+                <h2 class="card-title">Update Area Details</h2>
+                <form method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Annual Rainfall (mm)</label>
+                        <input type="number" name="annual_rainfall" 
+                               value="{{ govt_user.annual_rainfall }}" 
+                               class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Average Temperature (°C)</label>
+                        <input type="number" step="0.1" name="average_temperature"
+                               value="{{ govt_user.average_temperature }}"
+                               class="form-control" required>
+                    </div>
+                    <button type="submit" name="save_area_details" class="btn btn-primary btn-block">
+                        <i class="fas fa-save"></i> Save Area Details
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="dashboard-overview">
+            <div class="card summary-card">
+                <h2 class="card-title">Area Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <i class="fas fa-users"></i>
+                        <span class="stat-value">{{ farmer_count }}</span>
+                        <span class="stat-label">Farmers</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-seedling"></i>
+                        <span class="stat-value">{{ active_farmer_count }}</span>
+                        <span class="stat-label">Active</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-tint"></i>
+                        <span class="stat-value">{{ govt_user.annual_rainfall or '--' }}mm</span>
+                        <span class="stat-label">Rainfall</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-temperature-high"></i>
+                        <span class="stat-value">{{ govt_user.average_temperature or '--' }}°C</span>
+                        <span class="stat-label">Temperature</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Quick Actions</h2>
+                <div class="action-grid">
+                    <form method="POST">
+                        <button type="submit" name="option" value="analyze" class="action-card">
+                            <i class="fas fa-search"></i>
+                            <span>Analyze Farmer</span>
+                        </button>
+                        <button type="submit" name="option" value="view_farmer" class="action-card">
+                            <i class="fas fa-user"></i>
+                            <span>View Farmer Data</span>
+                        </button>
+                        <button type="submit" name="option" value="view_farmers" class="action-card">
+                            <i class="fas fa-users"></i>
+                            <span>Manage Farmers</span>
+                        </button>
+                        <button type="submit" name="option" value="register_farmer" class="action-card">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Register Farmer</span>
+                        </button>
+                        <button type="submit" name="option" value="area_settings" class="action-card">
+                            <i class="fas fa-cog"></i>
+                            <span>Area Settings</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+    {% endif %}
+{% endblock %}

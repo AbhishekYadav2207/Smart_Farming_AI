@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+{% block body_class %}login{% endblock %}
+
+{% block header_title %}Welcome Back{% endblock %}
+
+{% block header_actions %}
+    <a href="{{ url_for('auth.index') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back Home
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="card form-container">
+        <h2 class="card-title">Sign In</h2>
+        <form method="POST" class="form">
+            <div class="user-type-selector">
+                <button type="button" value="farmer" class="user-type-btn active">
+                    <i class="fas fa-tractor"></i> Farmer
+                </button>
+                <button type="button" value="govt" class="user-type-btn">
+                    <i class="fas fa-landmark"></i> Government
+                </button>
+                <button type="button" value="admin" class="user-type-btn">
+                    <i class="fas fa-user-shield"></i> Admin
+                </button>
+            </div>
+            
+            <input type="hidden" name="user_type" id="selected_user_type" value="farmer" required>
+            
+            <div class="form-group">
+                <label for="logemail" class="form-label">User ID</label>
+                <input type="text" id="logemail" name="id" class="form-control" placeholder="Enter your ID" required>
+            </div>
+
+            <div id="govt-password" style="display: none;">
+                <div class="form-group">
+                    <label for="logpass" class="form-label">Password</label>
+                    <input type="password" id="logpass" name="password" class="form-control" placeholder="Enter your password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userTypeBtns = document.querySelectorAll('.user-type-btn');
+        const passwordField = document.getElementById('govt-password');
+        const userTypeInput = document.getElementById('selected_user_type');
+        
+        function handleUserTypeSelect(btn) {
+            // Remove active class from all buttons
+            userTypeBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            btn.classList.add('active');
+            // Update hidden input value
+            userTypeInput.value = btn.value;
+            
+            // Toggle password field visibility
+            if (btn.value === 'govt' || btn.value === 'admin') {
+                passwordField.style.display = 'block';
+            } else {
+                passwordField.style.display = 'none';
+            }
+        }
+        
+        // Add click event to all buttons
+        userTypeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                handleUserTypeSelect(this);
+            });
+        });
+        
+        // Clear flash messages when changing user type
+        userTypeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const flashes = document.querySelector('.flashes-container');
+                if (flashes) flashes.remove();
+            });
+        });
+    });
+</script>
+{% endblock %}

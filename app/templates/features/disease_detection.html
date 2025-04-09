@@ -1,0 +1,256 @@
+
+{% extends "base.html" %}
+
+{% block title %}Plant Disease Detection{% endblock %}
+{% block body_class %}disease-detection{% endblock %}
+
+{% block header_title %}Plant Disease Detection{% endblock %}
+
+{% block header_actions %}
+    {% if session.get('farmer_id') %}
+        <a href="{{ url_for('farmer.dashboard') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    {% else %}
+        <a href="{{ url_for('main.index') }}" class="btn btn-outline">
+            <i class="fas fa-home"></i> Home
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="disease-detection-container">
+    <div class="card">
+        <h2 class="card-title">Disease Detection</h2>
+        <form method="POST" enctype="multipart/form-data" data-ai-processing="true">
+            <div class="form-group">
+                <label class="form-label">Upload Plant Image</label>
+                <div class="image-upload-box">
+                    <div class="preview-area" id="previewArea">
+                        <img id="imagePreview" class="preview-image" style="display: none;">
+                        <div class="default-message" id="defaultMessage">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to upload or drag and drop</p>
+                            <p class="small-text">JPG, PNG (Max 5MB)</p>
+                        </div>
+                    </div>
+                    <input type="file" name="image" id="fileInput" accept="image/*" required
+                           onchange="handleImageUpload(event)">
+                </div>
+            </div>
+            <button type="submit" name="analyze_disease" class="btn btn-primary btn-block" data-ai-button="true">
+                <i class="fas fa-search"></i> Analyze Image
+            </button>
+        </form>
+
+        {% if disease_result %}
+        <div class="disease-result mt-3">
+            <h3><i class="fas fa-diagnoses"></i> Analysis Results</h3>
+            <div class="result-content">{{ disease_result|safe }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <style>
+        .disease-report table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }
+        .disease-report td {
+            vertical-align: top;
+            padding: 4px 8px;
+        }
+        .disease-report td:first-child {
+            width: 40%;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .disease-report tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        .disease-report b {
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        .disease-report u {
+            text-decoration: underline;
+        }
+        .disease-report i {
+            font-style: italic;
+            color: #34495e;
+        }
+        .disease-report tr:first-child td {
+            padding-top: 12px;
+            font-size: 1.2em;
+        }
+        .disease-report tr:last-child td {
+            padding-bottom: 12px;
+        }
+        
+        </style>
+
+    <style>
+        .image-upload-box {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .preview-area {
+            width: 100%;
+            height: 250px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background-color: #f8f9fa;
+            transition: all 0.3s;
+        }
+        
+        .preview-area:hover {
+            border-color: #999;
+        }
+        
+        .preview-area.dragover {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+        
+        .default-message {
+            text-align: center;
+            color: #666;
+        }
+        
+        .default-message i {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: #aaa;
+        }
+        
+        .small-text {
+            font-size: 0.8em;
+            margin-top: 5px;
+            color: #999;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+    </style>
+
+    <script>
+        function handleImageUpload(event) {
+            const fileInput = event.target;
+            const previewArea = document.getElementById('previewArea');
+            const imagePreview = document.getElementById('imagePreview');
+            const defaultMessage = document.getElementById('defaultMessage');
+            
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                
+                // Check file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size exceeds 5MB limit');
+                    return;
+                }
+                
+                // Check file type
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    defaultMessage.style.display = 'none';
+                }
+                
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '';
+                imagePreview.style.display = 'none';
+                defaultMessage.style.display = 'flex';
+            }
+        }
+
+        // Add drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const previewArea = document.getElementById('previewArea');
+            const fileInput = document.getElementById('fileInput');
+            
+            if (previewArea) {
+                // Handle drag over
+                previewArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('dragover');
+                });
+                
+                // Handle drag leave
+                previewArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                });
+                
+                // Handle drop
+                previewArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                    
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        const event = new Event('change');
+                        fileInput.dispatchEvent(event);
+                    }
+                });
+                
+                // Handle click
+                previewArea.addEventListener('click', function() {
+                    fileInput.click();
+                });
+            }
+        });
+    </script>
+    
+    <div class="card tips-card">
+        <h3><i class="fas fa-lightbulb"></i> Tips for Best Results</h3>
+        <ul class="tips-list">
+            <li>Take photos in good lighting conditions</li>
+            <li>Focus on the affected leaves or stems</li>
+            <li>Include both healthy and diseased parts if possible</li>
+            <li>Take multiple photos from different angles</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name');
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = this.files[0].name;
+            } else {
+                fileNameDisplay.textContent = 'No file selected';
+            }
+        });
+    });
+</script>
+{% endblock %}

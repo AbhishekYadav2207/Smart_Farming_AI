@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Farming AI{% endblock %}
+
+{% block header_title %}Smart Farming AI{% endblock %}
+{% block body_class %}home{% endblock %}
+
+{% block header_actions %}
+    <a href="/login" class="btn btn-outline">
+        <i class="fas fa-sign-in-alt"></i> Login
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Revolutionize Your Farming</h1>
+            <p class="hero-text">AI-powered solutions for modern agriculture</p>
+            <a href="/login" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket"></i> Get Started
+            </a>
+            <a href="/disease_detection" class="btn btn-secondary btn-lg">
+                <i class="fas fa-bug"></i> Detect Diseases
+            </a>
+        </div>
+    </div>
+
+    <div class="features-section">
+        <div class="card">
+            <h2 class="card-title">Our Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-seedling feature-icon"></i>
+                    <h3>Crop Recommendations</h3>
+                    <p>Get AI-powered suggestions for the best crops based on your soil and climate conditions.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-flask feature-icon"></i>
+                    <h3>Fertilizer Analysis</h3>
+                    <p>Receive precise fertilizer recommendations tailored to your crops and soil nutrients.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-bug feature-icon"></i>
+                    <h3>Disease Detection</h3>
+                    <p>Upload plant images to identify diseases and get treatment recommendations.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line feature-icon"></i>
+                    <h3>Crop Monitoring</h3>
+                    <p>Track your crop health and growth with comprehensive monitoring tools.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-section">
+        <div class="card">
+            <h2 class="card-title">Ready to Transform Your Farming?</h2>
+            <p>Join hundreds of farmers who are already benefiting from our smart farming solutions.</p>
+            <a href="/login" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus"></i> Register Now
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Simple animation for feature cards
+    document.addEventListener('DOMContentLoaded', function() {
+        const featureCards = document.querySelectorAll('.feature-card');
+        featureCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Government User{% endblock %}
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h2 class="card-title">Edit Government User: {{ govt_user.id }}</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" name="name" value="{{ govt_user.name }}" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" value="{{ govt_user.password }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" value="{{ govt_user.location }}" class="form-control">
+            </div>
+            
+            <!-- Add all other government user fields as needed -->
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            <a href="{{ url_for('admin.dashboard', option='view_govt_users') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </form>
+    </div>
+{% endblock %}

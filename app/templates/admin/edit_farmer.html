@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Farmer{% endblock %}
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h2 class="card-title">Edit Farmer: {{ farmer.id }}</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Farmer Name</label>
+                <input type="text" name="farmer_name" value="{{ farmer.name }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Soil Type</label>
+                <select name="soil_type" class="form-control">
+                    <option value="Sandy" {% if farmer.soil_type == 'Sandy' %}selected{% endif %}>Sandy</option>
+                    <option value="Clay" {% if farmer.soil_type == 'Clay' %}selected{% endif %}>Clay</option>
+                    <option value="Loamy" {% if farmer.soil_type == 'Loamy' %}selected{% endif %}>Loamy</option>
+                    <option value="Peaty" {% if farmer.soil_type == 'Peaty' %}selected{% endif %}>Peaty</option>
+                    <option value="Saline" {% if farmer.soil_type == 'Saline' %}selected{% endif %}>Saline</option>
+                    <option value="Silty" {% if farmer.soil_type == 'Silty' %}selected{% endif %}>Silty</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">pH Level</label>
+                <input type="number" name="pH_level" step="0.1" min="0" max="14" 
+                       value="{{ farmer.pH_level }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" value="{{ farmer.location }}" class="form-control">
+            </div>
+            
+            <!-- Add all other farmer fields as needed -->
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            <a href="{{ url_for('admin.dashboard', option='view_farmers') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </form>
+    </div>
+{% endblock %}
