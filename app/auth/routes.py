@@ -14,15 +14,12 @@ def login():
     if request.method == 'POST' or form.validate_on_submit():
         if form.user_type.data == 'govt':
             govt_user = GovtUser.query.filter_by(id=form.id.data).first()
-            if govt_user:
-                if govt_user.verify_password(form.password.data):
-                    session['user_type'] = 'govt'
-                    session['govt_id'] = govt_user.id
-                    return redirect(url_for('government.dashboard'))
-                else:
-                    flash('Invalid password', 'error')
+            if govt_user and govt_user.verify_password(form.password.data):
+                session['user_type'] = 'govt'
+                session['govt_id'] = govt_user.id
+                return redirect(url_for('government.dashboard'))
             else:
-                flash('Invalid Username', 'error')
+                flash('Invalid credentials', 'error')
         elif form.user_type.data == 'farmer':
             farmer = Farmer.query.filter_by(id=form.id.data).first()
             if farmer:
@@ -34,15 +31,13 @@ def login():
         elif form.user_type.data == 'admin':
             from config import Config
             from werkzeug.security import check_password_hash
-            if (form.id.data == Config.ADMIN_USERNAME):
-                if (Config.ADMIN_PASSWORD_HASH and 
+            if (form.id.data == Config.ADMIN_USERNAME and 
+                Config.ADMIN_PASSWORD_HASH and 
                 check_password_hash(Config.ADMIN_PASSWORD_HASH, form.password.data)):
-                    session['user_type'] = 'admin'
-                    return redirect(url_for('admin.dashboard'))
-                else:
-                    flash('Invalid password', 'error')
+                session['user_type'] = 'admin'
+                return redirect(url_for('admin.dashboard'))
             else:
-                flash('Invalid Username', 'error')
+                flash('Invalid credentials', 'error')
     return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/logout')
