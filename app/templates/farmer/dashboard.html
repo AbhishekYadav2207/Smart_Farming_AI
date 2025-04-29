@@ -327,29 +327,29 @@
         </div>
     {% endif %}
     {% else %}
-    <div class="farmer-profile-overview">
-        <div class="farmer-profile-card">
-            <h2 class="farmer-profile-title">Farmer Overview</h2>
-            <div class="farmer-stats-grid">
-                <div class="farmer-stat-item">
+    <div class="dashboard-overview">
+        <div class="card summary-card">
+            <h2 class="card-title">Farmer Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
                     <i class="fas fa-location"></i>
-                    <span class="farmer-stat-value">{{ farmer.location }}</span>
-                    <span class="farmer-stat-label">Located</span>
+                    <span class="stat-value">{{ farmer.location }}</span>
+                    <span class="stat-label">Located</span>
                 </div>
-                <div class="farmer-stat-item">
+                <div class="stat-item">
                     <i class="fas fa-seedling"></i>
-                    <span class="farmer-stat-value">{{ farmer.crop_selected }}</span>
-                    <span class="farmer-stat-label">Crop Selected</span>
+                    <span class="stat-value">{{ farmer.crop_selected }}</span>
+                    <span class="stat-label">Crop Selected</span>
                 </div>
-                <div class="farmer-stat-item">
+                <div class="stat-item">
                     <i class="fas fa-tint"></i>
-                    <span class="farmer-stat-value">{{ farmer.annual_rainfall or '--' }}mm</span>
-                    <span class="farmer-stat-label">Rainfall</span>
+                    <span class="stat-value">{{ farmer.annual_rainfall or '--' }}mm</span>
+                    <span class="stat-label">Rainfall</span>
                 </div>
-                <div class="farmer-stat-item farmer-temperature-item">
+                <div class="stat-item">
                     <i class="fas fa-temperature-high"></i>
-                    <span class="farmer-stat-value">{{ farmer.average_temperature or '--' }}°C</span>
-                    <span class="farmer-stat-label">Temperature</span>
+                    <span class="stat-value">{{ farmer.average_temperature or '--' }}°C</span>
+                    <span class="stat-label">Temperature</span>
                 </div>
             </div>
         </div>
