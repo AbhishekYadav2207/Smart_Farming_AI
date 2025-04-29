@@ -2,13 +2,14 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session,
 from sqlalchemy import or_
 from app.models import Farmer, GovtUser
 from app.admin.forms import RegisterGovtUserForm
-from app.utils.decorators import admin_required
+from app.utils.decorators import admin_required, session_required
 from app import db
 
 admin_bp = Blueprint('admin', __name__)
 
 @admin_bp.route('/admin_dashboard', methods=['GET', 'POST'])
 @admin_required
+@session_required
 def dashboard():
     farmer_data = None
     selected_option = session.get('selected_option')
