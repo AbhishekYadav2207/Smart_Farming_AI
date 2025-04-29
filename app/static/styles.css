@@ -1954,3 +1954,177 @@ textarea.form-control {
         margin: 0 !important;
     }
 }
+
+/* Disease Report Styling - Responsive */
+.disease-report {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: 'Poppins', sans-serif;
+    color: var(--dark);
+}
+
+.report-section {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+    color: var(--primary-dark);
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+}
+
+.section-title::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.report-item {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.report-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.item-label {
+    font-weight: 600;
+    color: var(--dark);
+    width: 150px;
+    flex-shrink: 0;
+}
+
+.item-value {
+    flex: 1;
+    min-width: 200px;
+}
+
+.treatment-item {
+    margin-bottom: 1.2rem;
+}
+
+.treatment-type {
+    display: block;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+.treatment-list {
+    padding-left: 1.5rem;
+    margin: 0;
+}
+
+.treatment-list li {
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.treatment-list li::before {
+    content: '→';
+    position: absolute;
+    left: -1.5rem;
+    color: var(--primary);
+}
+
+.prevention-item {
+    margin-bottom: 1rem;
+}
+
+.prevention-type {
+    font-weight: 600;
+    color: var(--secondary);
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.prevention-detail {
+    display: block;
+    padding-left: 1rem;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .disease-report {
+        color: var(--dark);
+    }
+    
+    .report-section {
+        background: rgba(30, 41, 59, 0.9);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .section-title {
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .item-label {
+        color: #a5b4fc;
+    }
+    
+    .item-value {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .report-item {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .treatment-type {
+        color: #4ade80;
+    }
+    
+    .prevention-type {
+        color: #60a5fa;
+    }
+    
+    .treatment-list li::before {
+        color: var(--primary);
+    }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .report-item {
+        flex-direction: column;
+    }
+    
+    .item-label {
+        width: 100%;
+        margin-bottom: 0.3rem;
+    }
+    
+    .item-value {
+        width: 100%;
+        min-width: 100%;
+    }
+    
+    .report-section {
+        padding: 1.2rem;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+    }
+}

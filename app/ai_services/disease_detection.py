@@ -17,57 +17,81 @@ def analyze(image_file):
         image_bytes.seek(0)
         image_for_gemini = Image.open(image_bytes)
 
-        disease_prompt = """Analyze the uploaded plant image and provide a detailed disease report formatted as a two-column HTML table. 
-Use the following structure exactly:
+        disease_prompt = """Analyze the uploaded plant image and provide a detailed disease report formatted in HTML div structure. 
+Use the following format exactly:
 
 <div class="disease-report">
-<table>
-<tr><td colspan="2"><b>PLANT DISEASE REPORT</b></td></tr>
+  <div class="report-section">
+    <h3 class="section-title">DISEASE IDENTIFICATION</h3>
+    <div class="report-item">
+      <span class="item-label">Name:</span>
+      <span class="item-value"><i>[Scientific name]</i></span>
+    </div>
+    <div class="report-item">
+      <span class="item-label">Confidence Level:</span>
+      <span class="item-value"><i>[High/Moderate/Low]</i></span>
+    </div>
+  </div>
 
-<tr><td><b><u>1. DISEASE IDENTIFICATION</u></b></td><td></td></tr>
-<tr><td>Name:</td><td><i>[Scientific name]</i></td></tr>
-<tr><td>Confidence Level:</td><td><i>[High/Moderate/Low]</i></td></tr>
+  <div class="report-section">
+    <h3 class="section-title">SYMPTOMS OBSERVED</h3>
+    <div class="report-item">
+      <span class="item-label">Visible Signs:</span>
+      <span class="item-value"><i>[Description]</i></span>
+    </div>
+    <div class="report-item">
+      <span class="item-label">Affected Areas:</span>
+      <span class="item-value"><i>[Plant parts]</i></span>
+    </div>
+  </div>
 
-<tr><td><b><u>2. SYMPTOMS OBSERVED</u></b></td><td></td></tr>
-<tr><td>Visible Signs:</td><td><i>[Description]</i></td></tr>
-<tr><td>Color:</td><td><i>[Colors]</i></td></tr>
-<tr><td>Shape/Pattern:</td><td><i>[Description]</i></td></tr>
-<tr><td>Affected Areas:</td><td><i>[Plant parts]</i></td></tr>
-<tr><td>Severity:</td><td><i>[Mild/Moderate/Severe]</i></td></tr>
+  <div class="report-section">
+    <h3 class="section-title">TREATMENT RECOMMENDATIONS</h3>
+    <div class="treatment-item">
+      <span class="treatment-type">Organic Solutions:</span>
+      <ul class="treatment-list">
+        <li><i>[Remedy 1 with instructions]</i></li>
+        <li><i>[Remedy 2 with instructions]</i></li>
+        .
+        .
+        .
+        <li><i>[Remedy N with instructions]</i></li>
+      </ul>
+    </div>
+    <div class="treatment-item">
+      <span class="treatment-type">Chemical Solutions:</span>
+      <ul class="treatment-list">
+        <li><i>[Product 1 with notes]</i></li>
+        <li><i>[Product 2 with notes]</i></li>
+        .
+        .
+        .
+        <li><i>[Product N with notes]</i></li>
+      </ul>
+    </div>
+  </div>
 
-<tr><td><b><u>3. ROOT CAUSES</u></b></td><td></td></tr>
-<tr><td>Primary Type:</td><td><i>[Fungal/Bacterial/Viral]</i></td></tr>
-<tr><td>Contributing Factors:</td><td></td></tr>
-<tr><td>- Environmental:</td><td><i>[Factors]</i></td></tr>
-<tr><td>- Cultural:</td><td><i>[Factors]</i></td></tr>
-
-<tr><td><b><u>4. TREATMENT RECOMMENDATIONS</u></b></td><td></td></tr>
-<tr><td>Organic Solutions:</td><td></td></tr>
-<tr><td>→</td><td><i>[Remedy 1 with instructions]</i></td></tr>
-<tr><td>→</td><td><i>[Remedy 2 with instructions]</i></td></tr>
-<tr><td>Chemical Solutions:</td><td></td></tr>
-<tr><td>→</td><td><i>[Product 1 with notes]</i></td></tr>
-<tr><td>→</td><td><i>[Product 2 with notes]</i></td></tr>
-
-<tr><td><b><u>5. PREVENTION MEASURES</u></b></td><td></td></tr>
-<tr><td>Immediate Actions:</td><td><i>[Steps]</i></td></tr>
-<tr><td>Long-Term Practices:</td><td><i>[Strategies]</i></td></tr>
-
-<tr><td><b>ADDITIONAL NOTES:</b></td><td><i>[Any relevant information]</i></td></tr>
-</table>
+  <div class="report-section">
+    <h3 class="section-title">PREVENTION MEASURES</h3>
+    <div class="prevention-item">
+      <span class="prevention-type">Immediate Actions:</span>
+      <span class="prevention-detail"><i>[Steps]</i></span>
+    </div>
+    <div class="prevention-item">
+      <span class="prevention-type">Long-Term Practices:</span>
+      <span class="prevention-detail"><i>[Strategies]</i></span>
+    </div>
+  </div>
 </div>
 
 Formatting Rules:
-1. Use HTML table structure for perfect two-column layout
-2. First column contains all headings and labels
-3. Second column contains all data values
-4. Maintain HTML formatting (<b>, <i>) but NO underlines
-5. Use arrow symbols (→) for treatment items
-6. Section headings span both columns
-7. No markdown symbols, only HTML tags
-8. Remove all <u> underline tags
-strip all teh white space and new lines from the response
-9. No extra spaces between HTML tags and content"""
+1. Use div-based structure for responsive layout
+2. Maintain consistent class names as shown
+3. Use semantic HTML elements
+4. Keep content concise but informative
+5. No tables or complex formatting
+6. Remove all unnecessary whitespace
+7. Only include the HTML structure, no markdown"""
 
 
         response = model.generate_content([disease_prompt, image_for_gemini], safety_settings={
