@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
 from app.models import Farmer, GovtUser
 from app.ai_services import crop_recommendation
-from app.utils.decorators import govt_required, session_required
+from app.utils.decorators import govt_required
 from app import db
 from sqlalchemy import or_
 
@@ -9,7 +9,6 @@ govt_bp = Blueprint('government', __name__)
 
 @govt_bp.route('/govt_dashboard', methods=['GET', 'POST'])
 @govt_required
-@session_required
 def dashboard():
     govt_user = GovtUser.query.filter_by(id=session['govt_id']).first()
     if not govt_user:
