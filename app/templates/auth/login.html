@@ -16,18 +16,18 @@
         <h2 class="card-title">Sign In</h2>
         <form method="POST" class="form">
             <div class="user-type-selector">
-                <button type="button" value="farmer" class="user-type-btn active">
+                <button type="button" value="farmer" class="user-type-btn {% if form.user_type.data == 'farmer' or not form.user_type.data %}active{% endif %}">
                     <i class="fas fa-tractor"></i> Farmer
                 </button>
-                <button type="button" value="govt" class="user-type-btn">
+                <button type="button" value="govt" class="user-type-btn {% if form.user_type.data == 'govt' %}active{% endif %}">
                     <i class="fas fa-landmark"></i> Government
                 </button>
-                <button type="button" value="admin" class="user-type-btn">
+                <button type="button" value="admin" class="user-type-btn {% if form.user_type.data == 'admin' %}active{% endif %}">
                     <i class="fas fa-user-shield"></i> Admin
                 </button>
             </div>
             
-            <input type="hidden" name="user_type" id="selected_user_type" value="farmer" required>
+            <input type="hidden" name="user_type" id="selected_user_type" value="{{ form.user_type.data or 'farmer' }}" required>
             
             <div class="form-group">
                 <label for="logemail" class="form-label">User ID</label>
@@ -51,40 +51,62 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const userTypeBtns = document.querySelectorAll('.user-type-btn');
-        const passwordField = document.getElementById('govt-password');
-        const userTypeInput = document.getElementById('selected_user_type');
-        
-        function handleUserTypeSelect(btn) {
-            // Remove active class from all buttons
+    const userTypeBtns = document.querySelectorAll('.user-type-btn');
+    const passwordField = document.getElementById('govt-password');
+    const userTypeInput = document.getElementById('selected_user_type');
+    const loginForm = document.querySelector('form');
+    const usernameInput = document.getElementById('logemail');
+    const passwordInput = document.getElementById('logpass');
+
+    let formSubmitted = false;
+
+    // Prevent form submission on Enter in username field when password field is visible
+    usernameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && passwordField.style.display === 'block' && !passwordInput.value) {
+            e.preventDefault();
+            passwordInput.focus();
+        }
+    });
+
+    function handleUserTypeSelect(btn) {
+        if (!formSubmitted) {
             userTypeBtns.forEach(b => b.classList.remove('active'));
-            // Add active class to clicked button
             btn.classList.add('active');
-            // Update hidden input value
             userTypeInput.value = btn.value;
-            
-            // Toggle password field visibility
+
             if (btn.value === 'govt' || btn.value === 'admin') {
                 passwordField.style.display = 'block';
             } else {
                 passwordField.style.display = 'none';
             }
         }
-        
-        // Add click event to all buttons
-        userTypeBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                handleUserTypeSelect(this);
-            });
+    }
+
+    userTypeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            handleUserTypeSelect(this);
         });
-        
-        // Clear flash messages when changing user type
-        userTypeBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+    });
+
+    userTypeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!formSubmitted) {
                 const flashes = document.querySelector('.flashes-container');
                 if (flashes) flashes.remove();
-            });
+            }
         });
+    });
+
+    loginForm.addEventListener('submit', function() {
+        formSubmitted = true;
+        userTypeBtns.forEach(btn => btn.disabled = true);
+    });
+
+    // Initialize the form based on current user type
+    const currentUserType = userTypeInput.value;
+    if (currentUserType === 'govt' || currentUserType === 'admin') {
+        passwordField.style.display = 'block';
+    }
     });
 </script>
 {% endblock %}
