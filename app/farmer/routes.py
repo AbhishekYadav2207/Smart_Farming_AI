@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session,
 from app.models import Farmer
 from app.ai_services import fertilizer_analysis
 from app.ai_services import disease_detection as disease_detection_module
-from app.utils.decorators import farmer_required
+from app.utils.decorators import farmer_required,session_required
 from app import db
 
 farmer_bp = Blueprint('farmer', __name__)
@@ -27,6 +27,7 @@ def detect_disease():
 
 @farmer_bp.route('/farmer_dashboard', methods=['GET', 'POST'])
 @farmer_required
+@session_required
 def dashboard():
     farmer = Farmer.query.filter_by(id=session['farmer_id']).first()
     selected_option = session.get('selected_option')
