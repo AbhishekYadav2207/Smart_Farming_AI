@@ -212,13 +212,13 @@ header h1 {
 
 .flash.success {
     background-color: rgba(91, 252, 185, 0.879);
-    color: #2E7D32;
+    color: #107314;
     border: 1px solid rgba(46, 125, 50, 0.3);
 }
 
 .flash.error {
-    background-color: rgba(244, 67, 54, 0.856);
-    color: #C62828;
+    background-color: rgba(244, 67, 54, 0.626);
+    color: #2aefef;
     border: 1px solid rgba(198, 40, 40, 0.3);
 }
 
