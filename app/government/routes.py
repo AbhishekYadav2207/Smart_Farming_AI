@@ -11,6 +11,10 @@ govt_bp = Blueprint('government', __name__)
 @govt_required
 @session_required
 def dashboard():
+    # Clear selected_option if coming from browser back/forward navigation
+    if request.referrer and url_for('admin.dashboard') in request.referrer:
+        session.pop('selected_option', None)
+
     govt_user = GovtUser.query.filter_by(id=session['govt_id']).first()
     if not govt_user:
         flash('Government user not found', 'error')
@@ -140,7 +144,7 @@ def dashboard():
             return redirect(url_for('government.dashboard'))
         
         elif 'go_back' in request.form:
-            session['selected_option'] = None
+            session.pop('selected_option', None)
             return redirect(url_for('government.dashboard'))
 
     if request.method == 'GET' and selected_option == 'view_farmers':
