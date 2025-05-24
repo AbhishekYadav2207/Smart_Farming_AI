@@ -20,8 +20,9 @@ def dashboard():
         flash('Government user not found', 'error')
         return redirect(url_for('auth.login'))
 
-    selected_option = session.get('selected_option')
     farmer_data = None
+    selected_option = request.args.get('option', session.get('selected_option'))
+    session['selected_option'] = selected_option
     crop_options = None
     farmer_details_incomplete = False
     farmers = None
@@ -34,8 +35,9 @@ def dashboard():
 
     if request.method == 'POST':
         if 'option' in request.form:
-            session['selected_option'] = request.form['option']
-            return redirect(url_for('government.dashboard', option=request.form['option']))
+            selected_option = request.form['option']
+            session['selected_option'] = selected_option
+            return redirect(url_for('government.dashboard', option=selected_option))
         
         elif 'farmer_id' in request.form and selected_option == 'analyze':
             farmer_id = request.form['farmer_id']
