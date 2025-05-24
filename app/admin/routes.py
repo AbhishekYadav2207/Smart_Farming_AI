@@ -11,19 +11,24 @@ admin_bp = Blueprint('admin', __name__)
 @admin_required
 @session_required
 def dashboard():
+    # Clear selected_option if coming from browser back/forward navigation
+    if request.referrer and url_for('admin.dashboard') in request.referrer:
+        session.pop('selected_option', None)
+
     farmer_data = None
-    selected_option = session.get('selected_option')
+    selected_option = request.args.get('option', session.get('selected_option'))
+    session['selected_option'] = selected_option
     farmers = None
     govt_users = None
     form = RegisterGovtUserForm()
 
     if request.method == 'POST':
         if 'option' in request.form:
-            session['selected_option'] = request.form['option']
-            selected_option = session['selected_option']
+            selected_option = request.form['option']
+            session['selected_option'] = selected_option
+            return redirect(url_for('admin.dashboard', option=selected_option))
 
         if 'register_govt' in request.form and selected_option == 'register_govt':
-            print("Registering government user")
             form = RegisterGovtUserForm()
             if form.validate_on_submit():
                 if GovtUser.query.filter_by(id=form.id.data).first():
@@ -49,74 +54,76 @@ def dashboard():
                 flash('Farmer not found', 'error')
                 
         elif 'go_back' in request.form:
-            session['selected_option'] = None
-            selected_option = None
+            session.pop('selected_option', None)
+            return redirect(url_for('admin.dashboard'))
 
     # Handle GET requests (search/filter/sort)
-    if request.method == 'GET' and selected_option in ['view_farmers', 'view_govt_users']:
-        search_query = request.args.get('search', '').strip()
-        filter_option = request.args.get('filter', '')
-        sort_option = request.args.get('sort', 'id_asc')
+    if request.method == 'GET':
+        if selected_option in ['view_farmers', 'view_govt_users']:
+            search_query = request.args.get('search', '').strip()
+            filter_option = request.args.get('filter', '')
+            sort_option = request.args.get('sort', 'id_asc')
 
-        if selected_option == 'view_farmers':
-            farmers_query = Farmer.query
-            
-            if search_query:
-                farmers_query = farmers_query.filter(
-                    or_(
-                        Farmer.name.like(f'%{search_query}%'),
-                        Farmer.id.ilike(f'%{search_query}%'),
-                        Farmer.location.ilike(f'%{search_query}%'),
-                        Farmer.crop_selected.ilike(f'%{search_query}%')
+            if selected_option == 'view_farmers':
+                farmers_query = Farmer.query
+                
+                if search_query:
+                    farmers_query = farmers_query.filter(
+                        or_(
+                            Farmer.name.like(f'%{search_query}%'),
+                            Farmer.id.ilike(f'%{search_query}%'),
+                            Farmer.location.ilike(f'%{search_query}%'),
+                            Farmer.crop_selected.ilike(f'%{search_query}%')
+                        )
                     )
-                )
-            
-            if filter_option == 'complete':
-                farmers_query = farmers_query.filter(Farmer.soil_type.isnot(None))
-            elif filter_option == 'incomplete':
-                farmers_query = farmers_query.filter(Farmer.soil_type.is_(None))
-            
-            if sort_option == 'id_asc':
-                farmers_query = farmers_query.order_by(Farmer.id.asc())
-            elif sort_option == 'id_desc':
-                farmers_query = farmers_query.order_by(Farmer.id.desc())
-            elif sort_option == 'location_asc':
-                farmers_query = farmers_query.order_by(Farmer.location.asc())
-            elif sort_option == 'location_desc':
-                farmers_query = farmers_query.order_by(Farmer.location.desc())
-            elif sort_option == 'crop_asc':
-                farmers_query = farmers_query.order_by(Farmer.crop_selected.asc())
-            elif sort_option == 'crop_desc':
-                farmers_query = farmers_query.order_by(Farmer.crop_selected.desc())
-            
-            farmers = farmers_query.all()
+                
+                if filter_option == 'complete':
+                    farmers_query = farmers_query.filter(Farmer.soil_type.isnot(None))
+                elif filter_option == 'incomplete':
+                    farmers_query = farmers_query.filter(Farmer.soil_type.is_(None))
+                
+                if sort_option == 'id_asc':
+                    farmers_query = farmers_query.order_by(Farmer.id.asc())
+                elif sort_option == 'id_desc':
+                    farmers_query = farmers_query.order_by(Farmer.id.desc())
+                elif sort_option == 'location_asc':
+                    farmers_query = farmers_query.order_by(Farmer.location.asc())
+                elif sort_option == 'location_desc':
+                    farmers_query = farmers_query.order_by(Farmer.location.desc())
+                elif sort_option == 'crop_asc':
+                    farmers_query = farmers_query.order_by(Farmer.crop_selected.asc())
+                elif sort_option == 'crop_desc':
+                    farmers_query = farmers_query.order_by(Farmer.crop_selected.desc())
+                
+                farmers = farmers_query.all()
 
-        elif selected_option == 'view_govt_users':
-            govt_query = GovtUser.query
-            
-            if search_query:
-                govt_query = govt_query.filter(
-                    or_(
-                        GovtUser.id.ilike(f'%{search_query}%'),
-                        GovtUser.location.ilike(f'%{search_query}%')
+            elif selected_option == 'view_govt_users':
+                govt_query = GovtUser.query
+                
+                if search_query:
+                    govt_query = govt_query.filter(
+                        or_(
+                            GovtUser.id.ilike(f'%{search_query}%'),
+                            GovtUser.location.ilike(f'%{search_query}%')
+                        )
                     )
-                )
-            
-            if sort_option == 'id_asc':
-                govt_query = govt_query.order_by(GovtUser.id.asc())
-            elif sort_option == 'id_desc':
-                govt_query = govt_query.order_by(GovtUser.id.desc())
-            elif sort_option == 'location_asc':
-                govt_query = govt_query.order_by(GovtUser.location.asc())
-            elif sort_option == 'location_desc':
-                govt_query = govt_query.order_by(GovtUser.location.desc())
-            
-            govt_users = govt_query.all()
+                
+                if sort_option == 'id_asc':
+                    govt_query = govt_query.order_by(GovtUser.id.asc())
+                elif sort_option == 'id_desc':
+                    govt_query = govt_query.order_by(GovtUser.id.desc())
+                elif sort_option == 'location_asc':
+                    govt_query = govt_query.order_by(GovtUser.location.asc())
+                elif sort_option == 'location_desc':
+                    govt_query = govt_query.order_by(GovtUser.location.desc())
+                
+                govt_users = govt_query.all()
 
-    if selected_option == 'view_farmers' and farmers is None:
-        farmers = Farmer.query.order_by(Farmer.id.asc()).all()
-    elif selected_option == 'view_govt_users' and govt_users is None:
-        govt_users = GovtUser.query.order_by(GovtUser.id.asc()).all()
+        # Load default data if no search/filter applied
+        if selected_option == 'view_farmers' and farmers is None:
+            farmers = Farmer.query.order_by(Farmer.id.asc()).all()
+        elif selected_option == 'view_govt_users' and govt_users is None:
+            govt_users = GovtUser.query.order_by(GovtUser.id.asc()).all()
 
     return render_template(
         'admin/dashboard.html',
