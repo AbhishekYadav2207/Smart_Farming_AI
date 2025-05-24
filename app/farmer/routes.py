@@ -29,6 +29,10 @@ def detect_disease():
 @farmer_required
 @session_required
 def dashboard():
+    # Clear selected_option if coming from browser back/forward navigation
+    if request.referrer and url_for('farmer.dashboard') in request.referrer:
+        session.pop('selected_option', None)
+
     farmer = Farmer.query.filter_by(id=session['farmer_id']).first()
     selected_option = session.get('selected_option')
     fertilizer_recommendations = None
@@ -40,6 +44,8 @@ def dashboard():
                 return redirect(url_for('main.detect_disease'))
             session['selected_option'] = request.form['option']
             selected_option = session.get('selected_option')
+            return redirect(url_for('farmer.dashboard', option=selected_option))
+
         elif 'save_details' in request.form:
             farmer.soil_type = request.form.get('soil_type')
             farmer.pH_level = request.form.get('pH_level')  
@@ -74,7 +80,7 @@ def dashboard():
                 flash('Please select a crop first.', 'error')
             
         elif 'go_back' in request.form:
-            session['selected_option'] = None
+            session.pop('selected_option', None)
             selected_option = None
 
     return render_template(

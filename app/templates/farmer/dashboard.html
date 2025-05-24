@@ -379,5 +379,32 @@
         </div>
     </div>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're on the main dashboard or a sub-page
+    const isMainDashboard = window.location.search.indexOf('option=') === -1;
+    
+    // Handle browser back button
+    window.addEventListener('popstate', function(event) {
+        if (isMainDashboard) {
+            // Only for main dashboard
+            if(confirm('Are you sure you want to logout?')) {
+                window.location.href = "{{ url_for('auth.logout') }}";
+            } else {
+                // Push the current state again to prevent leaving
+                history.pushState(null, null, window.location.pathname);
+            }
+        } else {
+            // For any selected option, go back to main dashboard
+            window.location.href = "{{ url_for('admin.dashboard') }}";
+        }
+    });
+
+    // Prevent issues with forward/back navigation
+    history.pushState(null, null, window.location.href);
+});
+</script>
+
 {% endblock %}
 
