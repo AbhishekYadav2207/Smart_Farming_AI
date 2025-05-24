@@ -34,7 +34,8 @@ def dashboard():
         session.pop('selected_option', None)
 
     farmer = Farmer.query.filter_by(id=session['farmer_id']).first()
-    selected_option = session.get('selected_option')
+    selected_option = request.args.get('option', session.get('selected_option'))
+    session['selected_option'] = selected_option
     fertilizer_recommendations = None
     disease_result = None
 
@@ -42,8 +43,8 @@ def dashboard():
         if 'option' in request.form:
             if request.form['option'] == 'disease':
                 return redirect(url_for('main.detect_disease'))
-            session['selected_option'] = request.form['option']
-            selected_option = session.get('selected_option')
+            selected_option = request.form['option']
+            session['selected_option'] = selected_option
             return redirect(url_for('farmer.dashboard', option=selected_option))
 
         elif 'save_details' in request.form:
