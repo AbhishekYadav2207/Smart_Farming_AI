@@ -12,7 +12,7 @@ govt_bp = Blueprint('government', __name__)
 @session_required
 def dashboard():
     # Clear selected_option if coming from browser back/forward navigation
-    if request.referrer and url_for('admin.dashboard') in request.referrer:
+    if request.referrer and url_for('government.dashboard') in request.referrer:
         session.pop('selected_option', None)
 
     govt_user = GovtUser.query.filter_by(id=session['govt_id']).first()
