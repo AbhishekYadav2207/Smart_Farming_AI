@@ -158,7 +158,9 @@ def dashboard():
         if search_query:
             farmers_query = farmers_query.filter(
                 or_(
+                    Farmer.name.ilike(f'%{search_query}%'),
                     Farmer.id.ilike(f'%{search_query}%'),
+                    farmer.ph_no.ilike(f'%{search_query}%'),
                     Farmer.crop_selected.ilike(f'%{search_query}%')
                 )
             )
