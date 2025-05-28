@@ -1,256 +1,245 @@
-
-{% extends "base.html" %}
-
-{% block title %}Plant Disease Detection{% endblock %}
-{% block body_class %}disease-detection{% endblock %}
-
-{% block header_title %}Plant Disease Detection{% endblock %}
-
-{% block header_actions %}
-    {% if session.get('farmer_id') %}
-        <a href="{{ url_for('farmer.dashboard') }}" class="btn btn-outline">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
-    {% else %}
-        <a href="{{ url_for('main.index') }}" class="btn btn-outline">
-            <i class="fas fa-home"></i> Home
-        </a>
-    {% endif %}
+{% extends "base.html" %} {% block header_title %} Plant Disease Detection {%
+endblock %} {% block header_description %}
+<p>
+  Upload an image of your plant to detect diseases and get treatment
+  recommendations.
+</p>
 {% endblock %}
-
-{% block content %}
+{% block title %}Plant Disease Detection{% endblock %} 
+{% block body_class %}disease-detection{% endblock %}
+{% block header_actions %}
+<div class="header-container">
+  <a
+    href="{{ url_for('farmer.dashboard') if session.get('farmer_id') else url_for('main.index') }}"
+    class="back-button"
+  >
+    <i class="fas fa-arrow-left"></i> Back
+  </a>
+</div>
+{% endblock %} {% block content %}
 <div class="disease-detection-container">
-    <div class="card">
-        <h2 class="card-title">Disease Detection</h2>
-        <form method="POST" enctype="multipart/form-data" data-ai-processing="true">
-            <div class="form-group">
-                <label class="form-label">Upload Plant Image</label>
-                <div class="image-upload-box">
-                    <div class="preview-area" id="previewArea">
-                        <img id="imagePreview" class="preview-image" style="display: none;">
-                        <div class="default-message" id="defaultMessage">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Click to upload or drag and drop</p>
-                            <p class="small-text">JPG, PNG (Max 5MB)</p>
+  <!-- Upload Card -->
+  <div class="upload-card card">
+    <div class="card-header">
+      <i class="fas fa-leaf"></i> Upload Plant Image
+    </div>
+
+    <form id="diseaseForm" enctype="multipart/form-data">
+      <div class="form-group">
+        <div class="image-upload-box">
+          <div class="preview-area" id="previewArea">
+            <img id="imagePreview" class="preview-image" />
+            <div class="default-message" id="defaultMessage">
+              <i class="fas fa-cloud-upload-alt upload-icon"></i>
+              <p>Click to upload or drag and drop</p>
+              <p class="small-text">JPG, PNG (Max 5MB)</p>
+            </div>
+            <div class="upload-progress" id="uploadProgress">
+              <div class="progress-spinner"></div>
+              <p>Analyzing image...</p>
+            </div>
+          </div>
+          <input
+            type="file"
+            name="image"
+            id="fileInput"
+            accept="image/*"
+            required
+          />
+          <div class="file-error" id="fileError"></div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="analyzeBtn">
+        <i class="fas fa-search"></i> Analyze Image
+      </button>
+    </form>
+  </div>
+
+  <!-- Results Container -->
+  <div id="resultsContainer"></div>
+
+  <!-- Tips Card -->
+  <div class="tips-card card">
+    <div class="card-header">
+      <i class="fas fa-lightbulb"></i> Tips for Best Results
+    </div>
+    <ul class="tips-list">
+      <li><i class="fas fa-sun"></i> Use natural daylight</li>
+      <li><i class="fas fa-search-plus"></i> Focus on affected areas</li>
+      <li><i class="fas fa-camera"></i> Take multiple angles</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // DOM Elements
+    const form = document.getElementById("diseaseForm");
+    const fileInput = document.getElementById("fileInput");
+    const previewArea = document.getElementById("previewArea");
+    const imagePreview = document.getElementById("imagePreview");
+    const defaultMessage = document.getElementById("defaultMessage");
+    const uploadProgress = document.getElementById("uploadProgress");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const fileError = document.getElementById("fileError");
+    const resultsContainer = document.getElementById("resultsContainer");
+
+    // Handle file selection
+    fileInput.addEventListener("change", function (e) {
+      handleFileSelection(e.target.files);
+    });
+
+    // Drag and drop handlers
+    previewArea.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      previewArea.classList.add("dragover");
+    });
+
+    previewArea.addEventListener("dragleave", function (e) {
+      e.preventDefault();
+      previewArea.classList.remove("dragover");
+    });
+
+    previewArea.addEventListener("drop", function (e) {
+      e.preventDefault();
+      previewArea.classList.remove("dragover");
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelection(e.dataTransfer.files);
+      }
+    });
+
+    // Click to select file
+    previewArea.addEventListener("click", function () {
+      fileInput.click();
+    });
+
+    // Handle file validation and preview
+    function handleFileSelection(files) {
+      fileError.textContent = "";
+
+      if (!files || files.length === 0) {
+        return;
+      }
+
+      const file = files[0];
+
+      // Validate file type
+      if (!file.type.match("image.*")) {
+        fileError.textContent = "Please select an image file (JPEG, PNG)";
+        return;
+      }
+
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        fileError.textContent = "File size exceeds 5MB limit";
+        return;
+      }
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        imagePreview.src = e.target.result;
+        imagePreview.style.display = "block";
+        defaultMessage.style.display = "none";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Form submission
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      // Validate file
+      if (!fileInput.files || fileInput.files.length === 0) {
+        fileError.textContent = "Please select an image first";
+        return;
+      }
+
+      // Show loading state
+      analyzeBtn.disabled = true;
+      uploadProgress.style.display = "flex";
+
+      try {
+        const formData = new FormData(form);
+        const response = await fetch('{{ url_for("main.detect_disease") }}', {
+          method: "POST",
+          body: formData,
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Analysis failed");
+        }
+
+        displayResults(data);
+      } catch (error) {
+        fileError.textContent = error.message;
+        console.error("Error:", error);
+      } finally {
+        analyzeBtn.disabled = false;
+        uploadProgress.style.display = "none";
+      }
+    });
+
+    // Display results
+    function displayResults(data) {
+      resultsContainer.innerHTML = `
+            <div class="results-card card">
+                <div class="card-header">
+                    <i class="fas fa-diagnoses"></i> Analysis Results
+                </div>
+                <div class="disease-report">
+                    <div class="report-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-bug"></i> Disease Identified
+                            <span class="confidence-badge ${data.confidence.toLowerCase()}">
+                                ${data.confidence} confidence
+                            </span>
+                        </h3>
+                        <p><strong>${data.disease}</strong></p>
+                        <p>${data.symptoms}</p>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h3 class="section-title"><i class="fas fa-medkit"></i> Treatment Recommendations</h3>
+                        <div class="treatment-type">
+                            <h4>Organic Solutions</h4>
+                            <ul class="treatment-list">
+                                ${data.treatments.organic
+                                  .map((item) => `<li>${item}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>
+                        <div class="treatment-type">
+                            <h4>Chemical Solutions</h4>
+                            <ul class="treatment-list">
+                                ${data.treatments.chemical
+                                  .map((item) => `<li>${item}</li>`)
+                                  .join("")}
+                            </ul>
                         </div>
                     </div>
-                    <input type="file" name="image" id="fileInput" accept="image/*" required
-                           onchange="handleImageUpload(event)">
+                    
+                    <div class="report-section">
+                        <h3 class="section-title"><i class="fas fa-shield-alt"></i> Prevention Measures</h3>
+                        <ul class="prevention-list">
+                            ${data.prevention
+                              .map((item) => `<li>${item}</li>`)
+                              .join("")}
+                        </ul>
+                    </div>
                 </div>
             </div>
-            <button type="submit" name="analyze_disease" class="btn btn-primary btn-block" data-ai-button="true">
-                <i class="fas fa-search"></i> Analyze Image
-            </button>
-        </form>
+        `;
 
-        {% if disease_result %}
-        <div class="disease-result mt-3">
-            <h3><i class="fas fa-diagnoses"></i> Analysis Results</h3>
-            <div class="result-content">{{ disease_result|safe }}</div>
-        </div>
-        {% endif %}
-    </div>
-
-    <style>
-        .disease-report table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: Arial, sans-serif;
-        }
-        .disease-report td {
-            vertical-align: top;
-            padding: 4px 8px;
-        }
-        .disease-report td:first-child {
-            width: 40%;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        .disease-report tr:nth-child(even) {
-            background-color: #f5f5f5;
-        }
-        .disease-report b {
-            color: #2c3e50;
-            font-size: 1.1em;
-        }
-        .disease-report u {
-            text-decoration: underline;
-        }
-        .disease-report i {
-            font-style: italic;
-            color: #34495e;
-        }
-        .disease-report tr:first-child td {
-            padding-top: 12px;
-            font-size: 1.2em;
-        }
-        .disease-report tr:last-child td {
-            padding-bottom: 12px;
-        }
-        
-        </style>
-
-    <style>
-        .image-upload-box {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        
-        .preview-area {
-            width: 100%;
-            height: 250px;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            background-color: #f8f9fa;
-            transition: all 0.3s;
-        }
-        
-        .preview-area:hover {
-            border-color: #999;
-        }
-        
-        .preview-area.dragover {
-            border-color: #4CAF50;
-            background-color: #e8f5e9;
-        }
-        
-        .default-message {
-            text-align: center;
-            color: #666;
-        }
-        
-        .default-message i {
-            font-size: 48px;
-            margin-bottom: 10px;
-            color: #aaa;
-        }
-        
-        .small-text {
-            font-size: 0.8em;
-            margin-top: 5px;
-            color: #999;
-        }
-        
-        .preview-image {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        #fileInput {
-            display: none;
-        }
-    </style>
-
-    <script>
-        function handleImageUpload(event) {
-            const fileInput = event.target;
-            const previewArea = document.getElementById('previewArea');
-            const imagePreview = document.getElementById('imagePreview');
-            const defaultMessage = document.getElementById('defaultMessage');
-            
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                
-                // Check file size (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File size exceeds 5MB limit');
-                    return;
-                }
-                
-                // Check file type
-                if (!file.type.match('image.*')) {
-                    alert('Please select an image file');
-                    return;
-                }
-                
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                    defaultMessage.style.display = 'none';
-                }
-                
-                reader.readAsDataURL(file);
-            } else {
-                imagePreview.src = '';
-                imagePreview.style.display = 'none';
-                defaultMessage.style.display = 'flex';
-            }
-        }
-
-        // Add drag and drop functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const previewArea = document.getElementById('previewArea');
-            const fileInput = document.getElementById('fileInput');
-            
-            if (previewArea) {
-                // Handle drag over
-                previewArea.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.classList.add('dragover');
-                });
-                
-                // Handle drag leave
-                previewArea.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('dragover');
-                });
-                
-                // Handle drop
-                previewArea.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('dragover');
-                    
-                    if (e.dataTransfer.files.length) {
-                        fileInput.files = e.dataTransfer.files;
-                        const event = new Event('change');
-                        fileInput.dispatchEvent(event);
-                    }
-                });
-                
-                // Handle click
-                previewArea.addEventListener('click', function() {
-                    fileInput.click();
-                });
-            }
-        });
-    </script>
-    
-    <div class="card tips-card">
-        <h3><i class="fas fa-lightbulb"></i> Tips for Best Results</h3>
-        <ul class="tips-list">
-            <li>Take photos in good lighting conditions</li>
-            <li>Focus on the affected leaves or stems</li>
-            <li>Include both healthy and diseased parts if possible</li>
-            <li>Take multiple photos from different angles</li>
-        </ul>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-{{ super() }}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const fileInput = document.getElementById('file-input');
-        const fileNameDisplay = document.getElementById('file-name');
-        
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                fileNameDisplay.textContent = this.files[0].name;
-            } else {
-                fileNameDisplay.textContent = 'No file selected';
-            }
-        });
-    });
+      // Smooth scroll to results
+      resultsContainer.scrollIntoView({ behavior: "smooth" });
+    }
+  });
 </script>
 {% endblock %}
