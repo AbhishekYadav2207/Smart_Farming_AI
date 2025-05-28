@@ -5,7 +5,7 @@ def farmer_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get('user_type') != 'farmer':
-            flash('Unauthorized access', 'error')
+            flash('Farmer reqired', 'error')
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -14,7 +14,7 @@ def govt_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get('user_type') != 'govt':
-            flash('Unauthorized access', 'error')
+            flash('Govenment User Required', 'error')
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -23,7 +23,7 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get('user_type') != 'admin':
-            flash('Unauthorized access', 'error')
+            flash('Admin Required', 'error')
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function
