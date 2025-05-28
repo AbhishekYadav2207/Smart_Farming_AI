@@ -1,4 +1,4 @@
-# smart_farming_AI
+# SMART_FARMING_AI
 Smart Farming using AI
 
 **Revolutionize Your Harvest with Our AI-Powered Smart Farming Solution**
