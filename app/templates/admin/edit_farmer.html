@@ -12,6 +12,14 @@
                 <input type="text" name="farmer_name" value="{{ farmer.name }}" class="form-control">
             </div>
             <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="ph_no" value="{{ farmer.ph_no }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" value="{{ farmer.mail_id }}" class="form-control">
+            </div>
+            <div class="form-group">
                 <label class="form-label">Soil Type</label>
                 <select name="soil_type" class="form-control">
                     <option value="Sandy" {% if farmer.soil_type == 'Sandy' %}selected{% endif %}>Sandy</option>
