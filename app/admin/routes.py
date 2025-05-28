@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
 from sqlalchemy import or_
-from app.models import Farmer, GovtUser
-from app.admin.forms import RegisterGovtUserForm
+from app.models import Farmer, GovtUser, Location, Crop
+from app.admin.forms import RegisterGovtUserForm, RegisterLocationForm
 from app.utils.decorators import admin_required, session_required
 from app import db
 
@@ -15,12 +15,24 @@ def dashboard():
     if request.referrer and url_for('admin.dashboard') in request.referrer:
         session.pop('selected_option', None)
 
-    farmer_data = None
+    # Clear selected_option if coming from external page
+    if not request.referrer or url_for('farmer.dashboard') not in request.referrer:
+        session.pop('selected_option', None)
+
     selected_option = request.args.get('option', session.get('selected_option'))
     session['selected_option'] = selected_option
+    farmer_data = None
     farmers = None
     govt_users = None
-    form = RegisterGovtUserForm()
+    form1 = RegisterGovtUserForm()
+    form2 = RegisterLocationForm()
+    form = form1 if selected_option == 'register_govt' else form2 if selected_option == 'register_location' else None
+
+    farmer_count = Farmer.query.count()
+    govt_user_count = GovtUser.query.count()
+    location_count = Location.query.count()
+    crop_count = Crop.query.count()
+    print(f"Farmer Count: {farmer_count}, Govt User Count: {govt_user_count}, Location Count: {location_count}, Crop Count: {crop_count}")
 
     if request.method == 'POST':
         if 'option' in request.form:
@@ -34,15 +46,51 @@ def dashboard():
                 if GovtUser.query.filter_by(id=form.id.data).first():
                     flash('Government user ID already exists', 'error')
                 else:
-                    new_govt_user = GovtUser(
-                        name=form.name.data,
-                        password=form.password.data,
+                    # Check if location exists
+                    location = Location.query.get(form.location_id.data)
+                    if not location:
+                        flash('Location ID does not exist', 'error')
+                    else:
+                        phone = form.ph_no.data
+                        if phone.startswith('0') and len(phone) == 11:
+                            phone = phone[1:]
+                        if not phone.isdigit() and len(phone) != 13:
+                            flash('Invalid phone number', 'error')
+                            phone = None
+                        elif phone.startswith('+91') and len(phone) != 13:
+                            flash('Phone number must be in +91XXXXXXXXXX format', 'error')
+                            phone = None
+                        elif len(phone) == 10 and not phone.startswith('+91'):
+                            phone = '+91' + phone
+                        new_govt_user = GovtUser(
+                            id=form.id.data,
+                            name=form.name.data,
+                            phone=phone,
+                            email=form.email.data,
+                            password=form.password.data,
+                            location_id=form.location_id.data,
+                            type='govt_user'  # Set type automatically
+                        )
+                        db.session.add(new_govt_user)
+                        db.session.commit()
+                        flash('Government user registered successfully', 'success')
+                        return redirect(url_for('admin.dashboard'))
+
+        elif 'register_location' in request.form and selected_option == 'register_location':
+            form = RegisterLocationForm()
+            if form.validate_on_submit():
+                if Location.query.filter_by(id=form.id.data).first():
+                    flash('Location ID already exists', 'error')
+                else:
+                    new_location = Location(
                         id=form.id.data,
-                        location=form.location.data,
+                        name=form.name.data,
+                        state=form.state.data,
+                        country='India'  # Default country
                     )
-                    db.session.add(new_govt_user)
+                    db.session.add(new_location)
                     db.session.commit()
-                    flash('Government user registered successfully', 'success')
+                    flash('Location registered successfully', 'success')
                     return redirect(url_for('admin.dashboard'))
             else:
                 flash('Please correct the errors in the form', 'error')
@@ -72,8 +120,8 @@ def dashboard():
                         or_(
                             Farmer.name.like(f'%{search_query}%'),
                             Farmer.id.ilike(f'%{search_query}%'),
-                            Farmer.location.ilike(f'%{search_query}%'),
-                            Farmer.crop_selected.ilike(f'%{search_query}%')
+                            Farmer.location.has(Location.name.ilike(f'%{search_query}%')),
+                            Farmer.current_crop.has(Crop.name.ilike(f'%{search_query}%'))
                         )
                     )
                 
@@ -87,37 +135,38 @@ def dashboard():
                 elif sort_option == 'id_desc':
                     farmers_query = farmers_query.order_by(Farmer.id.desc())
                 elif sort_option == 'location_asc':
-                    farmers_query = farmers_query.order_by(Farmer.location.asc())
+                    farmers_query = farmers_query.join(Location).order_by(Location.name.asc())
                 elif sort_option == 'location_desc':
-                    farmers_query = farmers_query.order_by(Farmer.location.desc())
+                    farmers_query = farmers_query.join(Location).order_by(Location.name.desc())
                 elif sort_option == 'crop_asc':
-                    farmers_query = farmers_query.order_by(Farmer.crop_selected.asc())
+                    farmers_query = farmers_query.join(Crop, Farmer.current_crop_id == Crop.id).order_by(Crop.name.asc())
                 elif sort_option == 'crop_desc':
-                    farmers_query = farmers_query.order_by(Farmer.crop_selected.desc())
+                    farmers_query = farmers_query.join(Crop, Farmer.current_crop_id == Crop.id).order_by(Crop.name.desc())
                 
                 farmers = farmers_query.all()
 
             elif selected_option == 'view_govt_users':
-                govt_query = GovtUser.query
-                
+                govt_users_query = GovtUser.query
+            
                 if search_query:
-                    govt_query = govt_query.filter(
+                    govt_users_query = govt_users_query.filter(
                         or_(
                             GovtUser.id.ilike(f'%{search_query}%'),
-                            GovtUser.location.ilike(f'%{search_query}%')
-                        )
+                            GovtUser.name.ilike(f'%{search_query}%'),
+                            GovtUser.location.has(Location.name.ilike(f'%{search_query}%'))
                     )
+                )
                 
                 if sort_option == 'id_asc':
-                    govt_query = govt_query.order_by(GovtUser.id.asc())
+                    govt_users_query = govt_users_query.order_by(GovtUser.id.asc())
                 elif sort_option == 'id_desc':
-                    govt_query = govt_query.order_by(GovtUser.id.desc())
+                    govt_users_query = govt_users_query.order_by(GovtUser.id.desc())
                 elif sort_option == 'location_asc':
-                    govt_query = govt_query.order_by(GovtUser.location.asc())
+                    govt_users_query = govt_users_query.join(Location).order_by(Location.name.asc())
                 elif sort_option == 'location_desc':
-                    govt_query = govt_query.order_by(GovtUser.location.desc())
+                    govt_users_query = govt_users_query.join(Location).order_by(Location.name.desc())
                 
-                govt_users = govt_query.all()
+                govt_users = govt_users_query.all()
 
         # Load default data if no search/filter applied
         if selected_option == 'view_farmers' and farmers is None:
@@ -132,6 +181,10 @@ def dashboard():
         farmers=farmers,
         govt_users=govt_users,
         form=form,
+        farmer_count=farmer_count,
+        govt_user_count=govt_user_count,
+        location_count=location_count,
+        crop_count=crop_count,
         search_query=request.args.get('search', ''),
         current_filter=request.args.get('filter', ''),
         current_sort=request.args.get('sort', 'id_asc')
@@ -143,14 +196,26 @@ def edit_farmer(farmer_id):
     farmer = Farmer.query.get_or_404(farmer_id)
     
     if request.method == 'POST':
-        farmer.name = request.form.get('farmer_name', farmer.name)
-        farmer.soil_type = request.form.get('soil_type')
-        farmer.pH_level = request.form.get('pH_level')
-        farmer.nitrogen = request.form.get('nitrogen')
-        farmer.phosphorus = request.form.get('phosphorus')
-        farmer.potassium = request.form.get('potassium')
-        farmer.area_of_land = request.form.get('area_of_land')
-        farmer.previous_crop = request.form.get('previous_crop')
+        phone = request.form.get('ph_no', farmer.ph_no)
+        if phone.startswith('0') and len(phone) == 11:
+            phone = phone[1:]
+        if not phone.isdigit() and len(phone) != 13:
+            flash('Invalid phone number', 'error')
+            phone = None
+        elif phone.startswith('+91') and len(phone) != 13:
+            flash('Phone number must be in +91XXXXXXXXXX format', 'error')
+            phone = None
+        elif len(phone) ==10 and not phone.startswith('+91'):
+            phone = '+91' + phone
+        farmer.name = request.form.get('name', farmer.name)
+        farmer.phone = phone
+        farmer.email = request.form.get('email', farmer.email)
+        farmer.soil_type = request.form.get('soil_type', farmer.soil_type)
+        farmer.ph_level = request.form.get('ph_level', farmer.ph_level)
+        farmer.nitrogen = request.form.get('nitrogen', farmer.nitrogen)
+        farmer.phosphorus = request.form.get('phosphorus', farmer.phosphorus)
+        farmer.potassium = request.form.get('potassium', farmer.potassium)
+        farmer.land_area = request.form.get('land_area', farmer.land_area)
         
         db.session.commit()
         flash('Farmer details updated successfully', 'success')
@@ -170,9 +235,20 @@ def edit_govt_user(govt_user_id):
         if new_password:
             govt_user.password = new_password
             
-        govt_user.location = request.form.get('location', govt_user.location)
-        govt_user.annual_rainfall = request.form.get('annual_rainfall', govt_user.annual_rainfall)
-        govt_user.average_temperature = request.form.get('average_temperature', govt_user.average_temperature)
+        phone = request.form.get('phone', govt_user.phone)
+        if phone.startswith('0') and len(phone) == 11:
+            phone = phone[1:]
+        if not phone.isdigit() and len(phone) != 13:
+            flash('Invalid phone number', 'error')
+            phone = None
+        elif phone.startswith('+91') and len(phone) != 13:
+            flash('Phone number must be in +91XXXXXXXXXX format', 'error')
+            phone = None
+        elif len(phone) == 10 and not phone.startswith('+91'):
+            phone = '+91' + phone
+        govt_user.phone = phone
+        govt_user.email = request.form.get('email', govt_user.email)
+        govt_user.location_id = request.form.get('location_id', govt_user.location_id)
         
         db.session.commit()
         flash('Government user updated successfully', 'success')
@@ -194,6 +270,7 @@ def remove_farmer():
         flash(f'Farmer {farmer_id} removed successfully', 'success')
 
     return redirect(url_for('admin.dashboard', option='view_farmers'))
+
 
 @admin_bp.route('/remove_govt_user', methods=['POST'])
 @admin_required
