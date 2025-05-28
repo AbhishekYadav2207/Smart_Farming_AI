@@ -22,45 +22,93 @@
     </div>
 
     {% if selected_option == 'register_govt' %}
-<div class="card">
-    <h2 class="card-title">Register Government User</h2>
-    <form method="POST">
-        <input type="hidden" name="register_govt" value="1">  <!-- Add this hidden field -->
-        {{ form.hidden_tag() }}  <!-- CSRF token -->
-        <div class="form-group">
-            <label for="name" class="form-label">Name:</label>
-            {{ form.name(class="form-control") }}
-            {% for error in form.name.errors %}
-                <span class="text-danger">{{ error }}</span>
-            {% endfor %}
-        </div>
-        <div class="form-group">
-            <label for="id" class="form-label">User ID</label>
-            {{ form.id(class="form-control") }}
-            {% for error in form.id.errors %}
-                <span class="text-danger">{{ error }}</span>
-            {% endfor %}
-        </div>
-        <div class="form-group">
-            <label for="password" class="form-label">Password</label>
-            {{ form.password(class="form-control") }}
-            {% for error in form.password.errors %}
-                <span class="text-danger">{{ error }}</span>
-            {% endfor %}
-        </div>
-        <div class="form-group">
-            <label for="location" class="form-label">Location</label>
-            {{ form.location(class="form-control") }}
-            {% for error in form.location.errors %}
-                <span class="text-danger">{{ error }}</span>
-            {% endfor %}
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">
-            <i class="fas fa-user-plus"></i> Register User
-        </button>
-    </form>
-</div>
-{% endif %}
+    <div class="card">
+        <h2 class="card-title">Register Government User</h2>
+        <form method="POST">
+            <input type="hidden" name="register_govt" value="1">  <!-- Add this hidden field -->
+            {{ form.hidden_tag() }}  <!-- CSRF token -->
+            <div class="form-group">
+                <label for="name" class="form-label">Name:</label>
+                {{ form.name(class="form-control") }}
+                {% for error in form.name.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="id" class="form-label">User ID</label>
+                {{ form.id(class="form-control") }}
+                {% for error in form.id.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="ph_no" class="form-label">Phone Number</label>
+                {{ form.ph_no(class="form-control") }}
+                {% for error in form.ph_no.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="mail_id" class="form-label">Email</label>
+                {{ form.email(class="form-control") }}
+                {% for error in form.email.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                {{ form.password(class="form-control") }}
+                {% for error in form.password.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="location_id" class="form-label">Location ID:</label>
+                {{ form.location_id(class="form-control") }}
+                {% for error in form.location_id.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-user-plus"></i> Register User
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if selected_option == 'register_location' %}
+    <div class="card">
+        <h2 class="card-title">Register Location</h2>
+        <form method="POST">
+            <input type="hidden" name="register_location" value="1">  <!-- Add this hidden field -->
+            {{ form.hidden_tag() }}  <!-- CSRF token -->
+            <div class="form-group">
+                <label for="id" class="form-label">Location ID:</label>
+                {{ form.id(class="form-control") }}
+                {% for error in form.id.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="name" class="form-label">Location Name:</label>
+                {{ form.name(class="form-control") }}
+                {% for error in form.name.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="state" class="form-label">State:</label>
+                {{ form.state(class="form-control") }}
+                {% for error in form.state.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-user-plus"></i> Register Location
+            </button>
+        </form>
+    </div>
+    {% endif %}
 
     {% if selected_option == 'view_farmer' %}
     <div class="card">
@@ -91,13 +139,8 @@
             </div>
 
             <div class="details-grid">
-                {% for field in ['name','soil_type', 'pH_level', 'annual_rainfall', 
-                                            'average_temperature', 'location', 'area', 
-                                            'previous_crop', 'previous_yield', 
-                                            'previous_fertilizer_used', 'nitrogen', 
-                                            'phosphorus', 'potassium', 'organic_carbon', 
-                                            'crop_selected', 'fertilizer_needed', 
-                                            'water_needed', 'disease_detection'] %}
+                {% for field in ['name', 'phone', 'email', 'soil_type', 'ph_level', 'land_area', 
+                                'aadhaar_number', 'nitrogen', 'phosphorus', 'potassium'] %}
                     {% if farmer_data[field] %}
                     <div class="detail-item">
                         <span class="detail-label">{{ field|replace('_', ' ')|title }}:</span>
@@ -105,6 +148,24 @@
                     </div>
                     {% endif %}
                 {% endfor %}
+                {% if farmer_data.location %}
+                <div class="detail-item">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">{{ farmer_data.location.name }}, {{ farmer_data.location.state }}</span>
+                </div>
+                {% endif %}
+                {% if farmer_data.current_crop %}
+                <div class="detail-item">
+                    <span class="detail-label">Current Crop:</span>
+                    <span class="detail-value">{{ farmer_data.current_crop.name }}</span>
+                </div>
+                {% endif %}
+                {% if farmer_data.previous_crop %}
+                <div class="detail-item">
+                    <span class="detail-label">Previous Crop:</span>
+                    <span class="detail-value">{{ farmer_data.previous_crop.name }}</span>
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endif %}
@@ -181,11 +242,14 @@
                     {% if farmer.name %}
                     <p><i class="fas fa-user"></i> <strong>Name:</strong> {{ farmer.name }}</p>
                     {% endif %}
-                    {% if farmer.location %}
-                    <p><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ farmer.location }}</p>
+                    {% if farmer.phone %}
+                    <p><i class="fas fa-phone"></i> <strong>Phone:</strong> {{ farmer.phone }}</p>
                     {% endif %}
-                    {% if farmer.crop_selected %}
-                    <p><i class="fas fa-seedling"></i> <strong>Crop:</strong> {{ farmer.crop_selected }}</p>
+                    {% if farmer.location %}
+                    <p><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ farmer.location.name }}, {{ farmer.location.state }}</p>
+                    {% endif %}
+                    {% if farmer.current_crop %}
+                    <p><i class="fas fa-seedling"></i> <strong>Current Crop:</strong> {{ farmer.current_crop.name }}</p>
                     {% endif %}
                 </div>
                 <div class="data-card-footer">
@@ -264,15 +328,10 @@
                     <p><i class="fas fa-user"></i> <strong>Name:</strong> {{ govt_user.name }}</p>
                     {% endif %}
                     {% if govt_user.location %}
-                    <p><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ govt_user.location }}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ govt_user.location.name }}, {{ govt_user.location.state }}</p>
                     {% endif %}
-                    {% if govt_user.annual_rainfall %}
-                    <p><i class="fas fa-cloud-rain"></i> <strong>Rainfall:</strong> {{ govt_user.annual_rainfall }}mm</p>
-                    {% endif %}
-                    {% if govt_user.average_temperature %}
-                    <p><i class="fas fa-temperature-high"></i> <strong>Temperature:</strong>
-                        {{ govt_user.average_temperature }}°C</p>
-                    {% endif %}
+                    <p><i class="fas fa-users"></i> <strong>No of Farmers Assigned:</strong> {{ govt_user.no_farmers_assigned }}</p>
+                    <p><i class="fas fa-check-circle"></i> <strong>No of Active Farmers:</strong> {{ govt_user.no_farmers_active }}</p>
                 </div>
                 <div class="data-card-footer">
                     <a href="{{ url_for('admin.edit_govt_user', govt_user_id=govt_user.id) }}" class="btn btn-primary btn-sm">
@@ -298,20 +357,51 @@
     </div>
     {% endif %}
     {% else %}
+    <div class="farmer-profile-overview">
+        <div class="farmer-profile-card">
+            <h2 class="farmer-profile-title">System Overview</h2>
+            <div class="farmer-stats-grid">
+                <div class="farmer-stat-item">
+                    <i class="fas fa-users"></i>
+                    <span class="farmer-stat-value">{{ farmer_count or '--' }}</span>
+                    <span class="farmer-stat-label">Farmers</span>
+                </div>
+                <div class="farmer-stat-item">
+                    <i class="fas fa-landmark"></i>
+                    <span class="farmer-stat-value">{{ govt_user_count or '--' }}</span>
+                    <span class="farmer-stat-label">Government Users</span>
+                </div>
+                <div class="farmer-stat-item">
+                    <i class="fas fa-location"></i>
+                    <span class="farmer-stat-value">{{ location_count or '--' }}</span>
+                    <span class="farmer-stat-label">Location Count</span>
+                </div>
+                <div class="farmer-stat-item">
+                    <i class="fas fa-seedling"></i>
+                    <span class="farmer-stat-value">{{ crop_count or '--' }}</span>
+                    <span class="farmer-stat-label">Crop Count</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <h2 class="card-title">Admin Controls</h2>
-        <div class="button-row">
+        <div class="action-grid">
             <form method="POST">
-                <button type="submit" name="option" value="register_govt" class="btn btn-primary">
+                <button type="submit" name="option" value="register_govt" class="action-card">
                     <i class="fas fa-user-plus"></i> Register Govt User
                 </button>
-                <button type="submit" name="option" value="view_farmer" class="btn btn-primary">
+                <button type="submit" name="option" value="register_location" class="action-card">
+                    <i class="fas fa-map-marker-alt"></i> Register Location
+                </button>
+                <button type="submit" name="option" value="view_farmer" class="action-card">
                     <i class="fas fa-search"></i> View Farmer
                 </button>
-                <button type="submit" name="option" value="view_farmers" class="btn btn-primary">
+                <button type="submit" name="option" value="view_farmers" class="action-card">
                     <i class="fas fa-users"></i> All Farmers
                 </button>
-                <button type="submit" name="option" value="view_govt_users" class="btn btn-primary">
+                <button type="submit" name="option" value="view_govt_users" class="action-card">
                     <i class="fas fa-landmark"></i> Govt Users
                 </button>
             </form>
@@ -320,27 +410,57 @@
 {% endif %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on the main dashboard or a sub-page
+    // Track if we're on main dashboard or sub-page
     const isMainDashboard = window.location.search.indexOf('option=') === -1;
     
-    // Handle browser back button
+    // Set initial history state
+    window.history.replaceState({
+        dashboard: true,
+        isMain: isMainDashboard
+    }, '');
+    
+    // Handle back/forward navigation
     window.addEventListener('popstate', function(event) {
-        if (isMainDashboard) {
-            // Only for main dashboard
-            if(confirm('Are you sure you want to logout?')) {
-                window.location.href = "{{ url_for('auth.logout') }}";
+        // If not from our dashboard, redirect to login
+        if (!event.state || !event.state.dashboard) {
+            window.location.href = "{{ url_for('auth.login') }}";
+            return;
+        }
+        
+        // If on main dashboard and going back - confirm logout
+        if (event.state.isMain) {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear session via AJAX before redirect
+                fetch("{{ url_for('auth.logout') }}", {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                }).then(() => {
+                    window.location.href = "{{ url_for('auth.login') }}";
+                });
             } else {
-                // Push the current state again to prevent leaving
-                history.pushState(null, null, window.location.pathname);
+                // Stay on page and restore history state
+                window.history.pushState({
+                    dashboard: true,
+                    isMain: true
+                }, '');
             }
         } else {
-            // For any selected option, go back to main dashboard
-            window.location.href = "{{ url_for('admin.dashboard') }}";
+            // From sub-page - go to main dashboard
+            window.location.href = "{{ url_for(request.endpoint) }}";
         }
     });
-
-    // Prevent issues with forward/back navigation
-    history.pushState(null, null, window.location.href);
+    
+    // Update state when navigating to sub-pages
+    document.querySelectorAll('form[method="POST"]').forEach(form => {
+        form.addEventListener('submit', function() {
+            if (this.querySelector('[name="option"]')) {
+                window.history.pushState({
+                    dashboard: true,
+                    isMain: false
+                }, '', window.location.href);
+            }
+        });
+    });
 });
 </script>
 {% endblock %}
