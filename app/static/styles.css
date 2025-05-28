@@ -1118,97 +1118,114 @@ textarea.form-control {
     background: rgba(76, 175, 80, 0.2);
 }
 
-.disease-result {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    margin-top: 2rem;
-    box-shadow: var(--shadow-md);
-    animation: fadeInUp 0.5s ease;
+/* ====================================
+   ENHANCED DISEASE DETECTION STYLES
+   ==================================== */
+
+.disease-detection-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    animation: fadeIn 0.6s ease;
 }
 
-.disease-result h3 {
-    color: var(--primary-dark);
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
-    font-weight: 600;
+.disease-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    position: relative;
 }
 
-.disease-result h3 i {
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: 12px; /* Rounded rectangle */
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--white);
+    margin-right: 1.5rem;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+}
+
+.back-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateX(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.back-button:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.4);
+    outline-offset: 2px;
+}
+
+
+.disease-title {
+    font-size: 2rem;
+    color: var(--white);
+    margin: 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(to right, var(--white), #f3f3f3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Image Upload Section */
+.upload-section {
+    margin-bottom: 3rem;
+}
+
+.upload-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    transition: var(--transition);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+}
+
+.upload-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-xl);
+}
+
+.upload-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.upload-header i {
+    font-size: 1.8rem;
     color: var(--accent);
+    margin-right: 1rem;
 }
 
-.result-content {
-    line-height: 1.7;
-}
-
-.disease-report table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'Poppins', sans-serif;
-    margin: 1rem 0;
-}
-
-.disease-report td {
-    vertical-align: top;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #3b0101;
-}
-
-.disease-report td:first-child {
-    width: 40%;
-    font-weight: 600;
-    color: var(--dark);
-}
-
-.disease-report tr:nth-child(even) {
-    background-color: rgba(248, 249, 253, 0.767);
-}
-
-.disease-report tr:hover {
-    background-color: rgba(76, 175, 80, 0.05);
-}
-
-.disease-report b {
+.upload-header h3 {
+    font-size: 1.5rem;
     color: var(--primary-dark);
-    font-size: 1.1em;
+    margin: 0;
 }
 
-.disease-report u {
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
+.upload-instructions {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
 }
 
-.disease-report i {
-    font-style: italic;
-    color: var(--dark);
-    color: #F44336;
-}
-
-.disease-report tr:first-child td {
-    padding-top: 1rem;
-    font-size: 1.2rem;
-    border-bottom: 2px solid var(--primary);
-}
-
-.disease-report tr:last-child td {
-    padding-bottom: 1rem;
-    border-bottom: none;
-}
-
-/* Image Upload Styles */
-.image-upload-box {
-    width: 100%;
-    margin-bottom: 2rem;
-}
-
+/* Enhanced Preview Area */
 .preview-area {
     width: 100%;
-    height: 300px;
-    border: 2px dashed #ccc;
+    height: 350px;
+    border: 2px dashed var(--accent);
     border-radius: var(--border-radius);
     display: flex;
     justify-content: center;
@@ -1220,16 +1237,19 @@ textarea.form-control {
     background-color: rgba(248, 249, 253, 0.8);
     transition: var(--transition);
     box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
 }
 
 .preview-area:hover {
-    border-color: var(--accent);
+    border-color: var(--primary);
     background-color: rgba(248, 249, 253, 0.9);
+    transform: translateY(-3px);
 }
 
 .preview-area.dragover {
     border-color: var(--primary);
     background-color: rgba(139, 195, 74, 0.1);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
 .default-message {
@@ -1240,24 +1260,27 @@ textarea.form-control {
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    transition: var(--transition);
 }
 
 .default-message i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
     color: var(--accent);
     transition: var(--transition);
 }
 
 .preview-area:hover .default-message i {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.1);
     color: var(--primary);
 }
 
 .small-text {
     font-size: 0.9rem;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     color: #999;
+    max-width: 300px;
+    line-height: 1.5;
 }
 
 .preview-image {
@@ -1266,12 +1289,353 @@ textarea.form-control {
     object-fit: contain;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
-}
-
-#fileInput {
     display: none;
 }
 
+/* Upload Button Styles */
+.upload-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.upload-btn {
+    position: relative;
+    overflow: hidden;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    background: linear-gradient(45deg, var(--primary), var(--accent));
+    color: white;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+}
+
+.upload-btn i {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.upload-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Loading State */
+.upload-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: var(--border-radius);
+}
+
+.progress-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(33, 150, 243, 0.2);
+    border-radius: 50%;
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+.progress-text {
+    color: var(--dark);
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Results Section */
+.results-section {
+    display: none;
+    animation: fadeInUp 0.6s ease;
+}
+
+.results-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    margin-top: 2rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(76, 175, 80, 0.2);
+}
+
+.results-title {
+    font-size: 1.75rem;
+    color: var(--primary-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.results-title i {
+    color: var(--accent);
+    margin-right: 0.75rem;
+}
+
+.confidence-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.confidence-badge.high {
+    background: linear-gradient(45deg, var(--success), #4CAF50);
+    color: white;
+}
+
+.confidence-badge.medium {
+    background: linear-gradient(45deg, var(--warning), #FFA000);
+    color: var(--dark);
+}
+
+.confidence-badge.low {
+    background: linear-gradient(45deg, var(--error), #E53935);
+    color: white;
+}
+
+/* Enhanced Report Sections */
+.report-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+    font-size: 1.3rem;
+    color: var(--primary-dark);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+}
+
+.report-item {
+    display: flex;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.item-label {
+    font-weight: 600;
+    color: var(--dark);
+    min-width: 150px;
+    flex-shrink: 0;
+}
+
+.item-value {
+    color: #555;
+    flex: 1;
+}
+
+/* Treatment and Prevention Styles */
+.treatment-section, .prevention-section {
+    background: rgba(76, 175, 80, 0.05);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.treatment-type, .prevention-type {
+    font-size: 1.1rem;
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.treatment-type i, .prevention-type i {
+    margin-right: 0.75rem;
+    color: var(--accent);
+}
+
+.treatment-list, .prevention-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.treatment-list li, .prevention-list li {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: var(--border-radius);
+    position: relative;
+    padding-left: 2.5rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.treatment-list li::before, .prevention-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.treatment-list li:hover, .prevention-list li:hover {
+    transform: translateX(5px);
+    background: white;
+}
+
+/* Error Message */
+.file-error {
+    color: var(--error);
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    text-align: center;
+    min-height: 20px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .disease-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .back-button {
+        margin-bottom: 1rem;
+        margin-right: 0;
+    }
+    
+    .preview-area {
+        height: 250px;
+    }
+    
+    .report-item {
+        flex-direction: column;
+    }
+    
+    .item-label {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .disease-title {
+        font-size: 1.5rem;
+    }
+    
+    .upload-card {
+        padding: 1.5rem;
+    }
+    
+    .preview-area {
+        height: 200px;
+    }
+    
+    .default-message i {
+        font-size: 2.5rem;
+    }
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+    .upload-card, .results-card {
+        background: rgba(30, 41, 59, 0.9);
+        color: var(--dark);
+    }
+    
+    .preview-area {
+        background-color: rgba(15, 23, 42, 0.7);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .preview-area:hover {
+        background-color: rgba(15, 23, 42, 0.9);
+    }
+    
+    .default-message {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .default-message i {
+        color: var(--accent);
+    }
+    
+    .upload-instructions {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .item-label {
+        color: #a5b4fc;
+    }
+    
+    .item-value {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .treatment-list li, .prevention-list li {
+        background: rgba(15, 23, 42, 0.7);
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .treatment-list li:hover, .prevention-list li:hover {
+        background: rgba(30, 41, 59, 0.9);
+    }
+    
+    .upload-progress {
+        background: rgba(2, 6, 23, 0.9);
+    }
+    
+    .progress-text {
+        color: var(--dark);
+    }
+}
 /* Loading animation styles */
 .loading-overlay {
     position: fixed;
