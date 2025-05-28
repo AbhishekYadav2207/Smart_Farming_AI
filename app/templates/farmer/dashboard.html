@@ -25,18 +25,48 @@
     {% if selected_option == 'details' %}
     <div class="card">
         <h2 class="card-title">Farmer Details</h2>
-        {% if farmer.soil_type and not (request.method == 'POST' and 'edit_details' in request.form) %}
+        {% if farmer.profile_complete and not (request.method == 'POST' and 'edit_details' in request.form) %}
             <div class="details-grid">
-                {% for field in ['name','soil_type', 'pH_level', 'annual_rainfall', 
-                                                    'average_temperature', 'location', 'nitrogen', 
-                                                    'phosphorus', 'potassium'] %}
-                    {% if farmer[field] %}
-                    <div class="detail-item">
-                        <span class="detail-label">{{ field|replace('_', ' ')|title }}:</span>
-                        <span class="detail-value">{{ farmer[field] }}</span>
-                    </div>
-                    {% endif %}
-                {% endfor %}
+                <div class="detail-item">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">{{ farmer.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">{{ farmer.location.name }}, {{ farmer.location.state }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Soil Type:</span>
+                    <span class="detail-value">{{ farmer.soil_type }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">pH Level:</span>
+                    <span class="detail-value">{{ farmer.ph_level }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Nitrogen (kg/ha):</span>
+                    <span class="detail-value">{{ farmer.nitrogen }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Phosphorus (kg/ha):</span>
+                    <span class="detail-value">{{ farmer.phosphorus }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Potassium (kg/ha):</span>
+                    <span class="detail-value">{{ farmer.potassium }}</span>
+                </div>
+                {% if farmer.current_crop %}
+                <div class="detail-item">
+                    <span class="detail-label">Current Crop:</span>
+                    <span class="detail-value">{{ farmer.current_crop.name }}</span>
+                </div>
+                {% endif %}
+                {% if farmer.previous_crop %}
+                <div class="detail-item">
+                    <span class="detail-label">Previous Crop:</span>
+                    <span class="detail-value">{{ farmer.previous_crop.name }}</span>
+                </div>
+                {% endif %}
             </div>
             <form method="POST" class="mt-3">
                 <button type="submit" name="edit_details" class="btn btn-secondary">
@@ -60,22 +90,22 @@
 
             <div class="form-group">
                 <label class="form-label">pH Level</label>
-                <input type="number" name="pH_level" step="0.1" min="0" max="14" value="{{ farmer.pH_level }}"
+                <input type="number" name="ph_level" step="0.1" min="0" max="14" value="{{ farmer.ph_level }}"
                     class="form-control" required>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Nitrogen (kg/ha)</label>
-                    <input type="number" name="nitrogen" value="{{ farmer.nitrogen }}" class="form-control" required>
+                    <input type="number" name="nitrogen" step="0.1" value="{{ farmer.nitrogen }}" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Phosphorus (kg/ha)</label>
-                    <input type="number" name="phosphorus" value="{{ farmer.phosphorus }}" class="form-control" required>
+                    <input type="number" name="phosphorus" step="0.1" value="{{ farmer.phosphorus }}" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Potassium (kg/ha)</label>
-                    <input type="number" name="potassium" value="{{ farmer.potassium }}" class="form-control" required>
+                    <input type="number" name="potassium" step="0.1" value="{{ farmer.potassium }}" class="form-control" required>
                 </div>
             </div>
 
@@ -88,235 +118,145 @@
     {% endif %}
 
     {% if selected_option == 'fertilizer' %}
-        <div class="card">
-            <h2 class="card-title">Fertilizer Analysis</h2>
-            {% if farmer.crop_selected %}
-                {% if farmer.fertilizer_needed %}
-                <div class="analysis-result">
-                    <h3><i class="fas fa-clipboard-check"></i> Current Recommendation</h3>
-                    <p>{{ farmer.fertilizer_needed }}</p>
+<div class="card">
+    <h2 class="card-title">Fertilizer Analysis</h2>
+    {% if not farmer.profile_complete %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> Please complete your soil details first.
+        </div>
+    {% else %}
+        <div class="current-crop-info">
+            <h3><i class="fas fa-seedling"></i> Current Crop</h3>
+            {% if farmer.current_crop %}
+                <p><strong>{{ farmer.current_crop.name }}</strong></p>
+                <p>Soil pH: {{ farmer.ph_level }}</p>
+                <p>Nitrogen: {{ farmer.nitrogen }} ppm</p>
+                <p>Phosphorus: {{ farmer.phosphorus }} ppm</p>
+                <p>Potassium: {{ farmer.potassium }} ppm</p>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No crop selected yet.
                 </div>
-                {% endif %}
-
-                {% if farmer.previous_fertilizer_used %}
-                <div class="analysis-result">
-                    <h3><i class="fas fa-history"></i> Previously Used</h3>
-                    <p>{{ farmer.previous_fertilizer_used }}</p>
-                </div>
-                {% endif %}
-
-                <form method="POST" class="mt-3" data-ai-processing="true">
-                    <button type="submit" name="analyze_fertilizer" class="btn btn-primary" data-ai-button="true">
-                        <i class="fas fa-search"></i> Analyze Fertilizer
+                <form method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Select Crop</label>
+                        <select name="selected_crop" class="form-control" required>
+                            <option value="">Select a crop</option>
+                            {% for crop in crops %}
+                            <option value="{{ crop.id }}">{{ crop.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" name="save_crop" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Crop
                     </button>
                 </form>
+            {% endif %}
+        </div>
 
-                {% if fertilizer_recommendations %}
-                <div class="analysis-result mt-3">
-                    <h3><i class="fas fa-lightbulb"></i> New Recommendations</h3>
-                    <p>{{ fertilizer_recommendations }}</p>
-                </div>
+        {% if farmer.current_crop and fertilizer_recommendations %}
+        <div class="analysis-result">
+            <h3><i class="fas fa-clipboard-check"></i> Latest Recommendation</h3>
+            <div class="recommendation-detail">
+                <br>
+                <p><strong>Crop:</strong> {{ fertilizer_recommendations.crop.name }}</p>
+                <p><strong>Date:</strong> {{ fertilizer_recommendations.date.strftime('%Y-%m-%d') }}</p>
+                <br>
+                <p><strong>Fertilizer Recommendation:</strong> {{ fertilizer_recommendations.fertilizer_recommendation }}</p>
+                <br>
+                <p><strong>Water Requirement:</strong> {{ fertilizer_recommendations.water_requirement }}</p>
+                <br>
+                {% if fertilizer_recommendations.notes %}
+                <p><strong>Notes:</strong> {{ fertilizer_recommendations.notes }}</p>
                 {% endif %}
-            {% else %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if farmer.current_crop %}
+        <form method="POST" class="mt-3">
+            <button type="submit" name="analyze_fertilizer" class="btn btn-primary">
+                <i class="fas fa-search"></i> Analyze Fertilizer
+            </button>
+        </form>
+        {% endif %}
+    {% endif %}
+</div>
+{% endif %}
+
+    {% if selected_option == 'disease' %}
+        <div class="card">
+            <h2 class="card-title">Disease Detection</h2>
             <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> Please select a crop first.
+                <i class="fas fa-info-circle"></i> Click the button below to analyze plant diseases.
+            </div>
+            <a href="{{ url_for('main.detect_disease') }}" class="btn btn-primary btn-block">
+                <i class="fas fa-bug"></i> Detect Disease
+            </a>
+
+            {% if farmer.disease_reports.count() > 0 %}
+            <div class="disease-history mt-4">
+                <h3><i class="fas fa-history"></i> Previous Reports</h3>
+                <div class="report-list">
+                    {% for report in farmer.disease_reports.order_by(DiseaseReport.detection_date.desc()).limit(5) %}
+                    <div class="report-item">
+                        <p><strong>Date:</strong> {{ report.detection_date.strftime('%Y-%m-%d') }}</p>
+                        <p><strong>Disease:</strong> {{ report.disease_name }} ({{ (report.confidence * 100)|round(1) }}%)</p>
+                        {% if report.treatment %}
+                        <p><strong>Treatment:</strong> {{ report.treatment }}</p>
+                        {% endif %}
+                        <hr>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
         </div>
     {% endif %}
 
-    <!-- {% if selected_option == 'disease' %}
-     <div class="card">
-        <h2 class="card-title">Disease Detection</h2>
-        <form method="POST" enctype="multipart/form-data" data-ai-processing="true">
-            <div class="form-group">
-                <label class="form-label">Upload Plant Image</label>
-                <div class="image-upload-box">
-                    <div class="preview-area" id="previewArea">
-                        <img id="imagePreview" class="preview-image" style="display: none;">
-                        <div class="default-message" id="defaultMessage">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Click to upload or drag and drop</p>
-                            <p class="small-text">JPG, PNG (Max 5MB)</p>
-                        </div>
-                    </div>
-                    <input type="file" name="image" id="fileInput" accept="image/*" required
-                           onchange="handleImageUpload(event)">
-                </div>
-            </div>
-            <button type="submit" name="analyze_disease" class="btn btn-primary btn-block" data-ai-button="true">
-                <i class="fas fa-search"></i> Analyze Image
-            </button>
-        </form>
-
-        {% if disease_result %}
-        <div class="disease-result mt-3">
-            <h3><i class="fas fa-diagnoses"></i> Analysis Results</h3>
-            <div class="result-content">{{ disease_result|safe }}</div>
-        </div>
-        {% endif %}
-    </div>
-
-    <style>
-        .image-upload-box {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        
-        .preview-area {
-            width: 100%;
-            height: 250px;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            background-color: #f8f9fa;
-            transition: all 0.3s;
-        }
-        
-        .preview-area:hover {
-            border-color: #999;
-        }
-        
-        .preview-area.dragover {
-            border-color: #4CAF50;
-            background-color: #e8f5e9;
-        }
-        
-        .default-message {
-            text-align: center;
-            color: #666;
-        }
-        
-        .default-message i {
-            font-size: 48px;
-            margin-bottom: 10px;
-            color: #aaa;
-        }
-        
-        .small-text {
-            font-size: 0.8em;
-            margin-top: 5px;
-            color: #999;
-        }
-        
-        .preview-image {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        #fileInput {
-            display: none;
-        }
-    </style>
-
-    <script>
-        function handleImageUpload(event) {
-            const fileInput = event.target;
-            const previewArea = document.getElementById('previewArea');
-            const imagePreview = document.getElementById('imagePreview');
-            const defaultMessage = document.getElementById('defaultMessage');
-            
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                
-                // Check file size (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File size exceeds 5MB limit');
-                    return;
-                }
-                
-                // Check file type
-                if (!file.type.match('image.*')) {
-                    alert('Please select an image file');
-                    return;
-                }
-                
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                    defaultMessage.style.display = 'none';
-                }
-                
-                reader.readAsDataURL(file);
-            } else {
-                imagePreview.src = '';
-                imagePreview.style.display = 'none';
-                defaultMessage.style.display = 'flex';
-            }
-        }
-
-        // Add drag and drop functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const previewArea = document.getElementById('previewArea');
-            const fileInput = document.getElementById('fileInput');
-            
-            if (previewArea) {
-                // Handle drag over
-                previewArea.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.classList.add('dragover');
-                });
-                
-                // Handle drag leave
-                previewArea.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('dragover');
-                });
-                
-                // Handle drop
-                previewArea.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('dragover');
-                    
-                    if (e.dataTransfer.files.length) {
-                        fileInput.files = e.dataTransfer.files;
-                        const event = new Event('change');
-                        fileInput.dispatchEvent(event);
-                    }
-                });
-                
-                // Handle click
-                previewArea.addEventListener('click', function() {
-                    fileInput.click();
-                });
-            }
-        });
-    </script>
-    {% endif %} -->
-
     {% if selected_option == 'monitoring' %}
         <div class="card">
             <h2 class="card-title">Crop Monitoring</h2>
-            {% if farmer.crop_selected %}
+            {% if farmer.current_crop %}
             <div class="monitoring-grid">
                 <div class="monitoring-item">
                     <i class="fas fa-seedling"></i>
-                    <span>Crop:</span>
-                    <strong>{{ farmer.crop_selected }}</strong>
+                    <span>Current Crop:</span>
+                    <strong>{{ farmer.current_crop.name }}</strong>
+                </div>
+                {% if farmer.previous_crop %}
+                <div class="monitoring-item">
+                    <i class="fas fa-history"></i>
+                    <span>Previous Crop:</span>
+                    <strong>{{ farmer.previous_crop.name }}</strong>
+                </div>
+                {% endif %}
+                {% if fertilizer_recommendations %}
+                <div class="monitoring-item">
+                    <i class="fas fa-flask"></i>
+                    <span>Fertilizer:</span>
+                    <strong>{{ fertilizer_recommendations.fertilizer_recommendation }}</strong>
                 </div>
                 <div class="monitoring-item">
                     <i class="fas fa-tint"></i>
                     <span>Water Needed:</span>
-                    <strong>{{ farmer.water_needed or 'Not specified' }}</strong>
+                    <strong>{{ fertilizer_recommendations.water_requirement }} mm</strong>
+                </div>
+                {% endif %}
+                <div class="monitoring-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Location:</span>
+                    <strong>{{ farmer.location.name }}, {{ farmer.location.state }}</strong>
                 </div>
                 <div class="monitoring-item">
-                    <i class="fas fa-flask"></i>
-                    <span>Fertilizer:</span>
-                    <strong>{{ farmer.fertilizer_needed or 'Not specified' }}</strong>
+                    <i class="fas fa-cloud-rain"></i>
+                    <span>Annual Rainfall:</span>
+                    <strong>{{ farmer.location.annual_rainfall }} mm</strong>
                 </div>
                 <div class="monitoring-item">
-                    <i class="fas fa-history"></i>
-                    <span>Previous Fertilizer:</span>
-                    <strong>{{ farmer.previous_fertilizer_used or 'None' }}</strong>
+                    <i class="fas fa-temperature-high"></i>
+                    <span>Avg Temperature:</span>
+                    <strong>{{ farmer.location.average_temperature }}°C</strong>
                 </div>
             </div>
             {% else %}
@@ -326,30 +266,44 @@
             {% endif %}
         </div>
     {% endif %}
-    {% else %}
+{% else %}
     <div class="farmer-profile-overview">
         <div class="farmer-profile-card">
             <h2 class="farmer-profile-title">Farmer Overview</h2>
             <div class="farmer-stats-grid">
                 <div class="farmer-stat-item">
-                    <i class="fas fa-location"></i>
-                    <span class="farmer-stat-value">{{ farmer.location }}</span>
-                    <span class="farmer-stat-label">Located</span>
+                    <i class="fas fa-location-arrow"></i>
+                    <span class="farmer-stat-value">{{ farmer.location.name }}</span>
+                    <span class="farmer-stat-label">Location</span>
                 </div>
                 <div class="farmer-stat-item">
                     <i class="fas fa-seedling"></i>
-                    <span class="farmer-stat-value">{{ farmer.crop_selected }}</span>
-                    <span class="farmer-stat-label">Crop Selected</span>
+                    <span class="farmer-stat-value">
+                        {% if farmer.current_crop %}{{ farmer.current_crop.name }}{% else %}None selected{% endif %}
+                    </span>
+                    <span class="farmer-stat-label">Current Crop</span>
                 </div>
                 <div class="farmer-stat-item">
-                    <i class="fas fa-tint"></i>
-                    <span class="farmer-stat-value">{{ farmer.annual_rainfall or '--' }}mm</span>
-                    <span class="farmer-stat-label">Rainfall</span>
+                    <i class="fas fa-cloud-rain"></i>
+                    <span class="farmer-stat-value">{{ farmer.location.annual_rainfall or '--' }} mm</span>
+                    <span class="farmer-stat-label">Annual Rainfall</span>
                 </div>
                 <div class="farmer-stat-item farmer-temperature-item">
                     <i class="fas fa-temperature-high"></i>
-                    <span class="farmer-stat-value">{{ farmer.average_temperature or '--' }}°C</span>
-                    <span class="farmer-stat-label">Temperature</span>
+                    <span class="farmer-stat-value">{{ farmer.location.average_temperature or '--' }}°C</span>
+                    <span class="farmer-stat-label">Avg Temperature</span>
+                </div>
+                <div class="farmer-stat-item">
+                    <i class="fas fa-vial"></i>
+                    <span class="farmer-stat-value">
+                        {% if farmer.profile_complete %}Complete{% else %}Incomplete{% endif %}
+                    </span>
+                    <span class="farmer-stat-label">Soil Profile</span>
+                </div>
+                <div class="farmer-stat-item">
+                    <i class="fas fa-bug"></i>
+                    <span class="farmer-stat-value">{{ farmer.disease_reports.count() }}</span>
+                    <span class="farmer-stat-label">Disease Reports</span>
                 </div>
             </div>
         </div>
@@ -382,29 +336,58 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on the main dashboard or a sub-page
+    // Track if we're on main dashboard or sub-page
     const isMainDashboard = window.location.search.indexOf('option=') === -1;
     
-    // Handle browser back button
+    // Set initial history state
+    window.history.replaceState({
+        dashboard: true,
+        isMain: isMainDashboard
+    }, '');
+    
+    // Handle back/forward navigation
     window.addEventListener('popstate', function(event) {
-        if (isMainDashboard) {
-            // Only for main dashboard
-            if(confirm('Are you sure you want to logout?')) {
-                window.location.href = "{{ url_for('auth.logout') }}";
+        // If not from our dashboard, redirect to login
+        if (!event.state || !event.state.dashboard) {
+            window.location.href = "{{ url_for('auth.login') }}";
+            return;
+        }
+        
+        // If on main dashboard and going back - confirm logout
+        if (event.state.isMain) {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear session via AJAX before redirect
+                fetch("{{ url_for('auth.logout') }}", {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                }).then(() => {
+                    window.location.href = "{{ url_for('auth.login') }}";
+                });
             } else {
-                // Push the current state again to prevent leaving
-                history.pushState(null, null, window.location.pathname);
+                // Stay on page and restore history state
+                window.history.pushState({
+                    dashboard: true,
+                    isMain: true
+                }, '');
             }
         } else {
-            // For any selected option, go back to main dashboard
-            window.location.href = "{{ url_for('farmer.dashboard') }}";
+            // From sub-page - go to main dashboard
+            window.location.href = "{{ url_for(request.endpoint) }}";
         }
     });
-
-    // Prevent issues with forward/back navigation
-    history.pushState(null, null, window.location.href);
+    
+    // Update state when navigating to sub-pages
+    document.querySelectorAll('form[method="POST"]').forEach(form => {
+        form.addEventListener('submit', function() {
+            if (this.querySelector('[name="option"]')) {
+                window.history.pushState({
+                    dashboard: true,
+                    isMain: false
+                }, '', window.location.href);
+            }
+        });
+    });
 });
 </script>
 
 {% endblock %}
-
