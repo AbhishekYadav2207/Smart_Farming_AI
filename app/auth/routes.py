@@ -47,5 +47,11 @@ def login():
 
 @auth_bp.route('/logout')
 def logout():
+    # Clear all session data
     session.clear()
-    return redirect(url_for('auth.login'))
+    # Create redirect response with no-cache headers
+    response = redirect(url_for('auth.login'))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
