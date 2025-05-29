@@ -294,10 +294,12 @@
                     <div class="form-group">
                         <label class="form-label">Sort by:</label>
                         <select name="sort" class="form-control">
-                            <option value="id_asc" {% if request.args.get('sort') == 'id_asc' %}selected{% endif %}>ID (A-Z)
+                            <option value="id_asc" 
+                                {% if request.args.get('sort') == 'id_asc' %}selected{% endif %}>ID (A-Z)
                             </option>
-                            <option value="id_desc" {% if request.args.get('sort') == 'id_desc' %}selected{% endif %}>ID
-                                (Z-A)</option>
+                            <option value="id_desc" 
+                                {% if request.args.get('sort') == 'id_desc' %}selected{% endif %}>ID (Z-A)
+                            </option>
                             <option value="location_asc"
                                 {% if request.args.get('sort') == 'location_asc' %}selected{% endif %}>Location (A-Z)
                             </option>
@@ -356,6 +358,176 @@
         {% endif %}
     </div>
     {% endif %}
+    {% if selected_option == 'view_locations' %}
+    <div class="card">
+        <h2 class="card-title">Locations</h2>
+
+        <!-- Search, Filter, and Sort Section -->
+        <div class="search-filter-container">
+            <!-- In the view_locations section -->
+            <form method="GET" action="{{ url_for('admin.dashboard') }}" class="search-form">
+                <input type="hidden" name="option" value="view_locations">
+                <div class="form-group">
+                    <div class="input-with-icon">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="search" placeholder="Search by ID, name or state..."
+                            value="{{ request.args.get('search', '') }}" class="form-control">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label class="form-label">Sort by:</label>
+                        <select name="sort" class="form-control">
+                            <option value="id_asc" {% if request.args.get('sort') == 'id_asc' %}selected{% endif %}>ID (A-Z)</option>
+                            <option value="id_desc" {% if request.args.get('sort') == 'id_desc' %}selected{% endif %}>ID (Z-A)</option>
+                            <option value="name_asc" {% if request.args.get('sort') == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="name_desc" {% if request.args.get('sort') == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                            <option value="state_asc" {% if request.args.get('sort') == 'state_asc' %}selected{% endif %}>State (A-Z)</option>
+                            <option value="state_desc" {% if request.args.get('sort') == 'state_desc' %}selected{% endif %}>State (Z-A)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Apply
+                    </button>
+                    <a href="{{ url_for('admin.dashboard', option='view_locations') }}" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+             {% if locations %}
+            <div class="grid-container">
+                {% for location in locations %}
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3><i class="fas fa-map-marker-alt"></i> {{ location.id }}</h3>
+                    </div>
+                    <div class="data-card-body">
+                        {% if location.name %}
+                        <p><i class="fas fa-map-signs"></i> <strong>Name:</strong> {{ location.name }}</p>
+                        {% endif %}
+                        {% if location.state %}
+                        <p><i class="fas fa-globe"></i> <strong>State:</strong> {{ location.state }}</p>
+                        {% endif %}
+                        {% if location.annual_rainfall %}
+                        <p><i class="fas fa-tint"></i> <strong>Annual Rainfall:</strong> {{ location.annual_rainfall }} mm</p>
+                        {% endif %}
+                        {% if location.average_temperature %}
+                        <p><i class="fas fa-thermometer-half"></i> <strong>Average Temperature:</strong> {{ location.average_temperature }} °C</p>
+                        {% endif %}
+                    </div>
+                    <div class="data-card-footer">
+                        <a href="{{ url_for('admin.edit_location', location_id=location.id) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.remove_location') }}"
+                            onsubmit="return confirm('Are you sure you want to remove this location?');"
+                            style="display: inline;">
+                            <input type="hidden" name="location_id" value="{{ location.id }}">
+                            <button type="submit" name="remove_location" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash-alt"></i> Remove
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No locations found matching your criteria.
+            </div>
+            {% endif %}
+    </div>
+    {% endif %}
+
+    {% if selected_option == 'view_crops' %}
+    <div class="card">
+        <h2 class="card-title">Crops</h2>
+
+        <!-- Search, Filter, and Sort Section -->
+        <div class="search-filter-container">
+            <!-- In the view_crops section -->
+            <form method="GET" action="{{ url_for('admin.dashboard') }}" class="search-form">
+                <input type="hidden" name="option" value="view_crops">
+                <div class="form-group">
+                    <div class="input-with-icon">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="search" placeholder="Search by ID or name..."
+                            value="{{ request.args.get('search', '') }}" class="form-control">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label class="form-label">Filter by:</label>
+                        <select name="filter" class="form-control">
+                            <option value="">All Crops</option>
+                            <option value="grown" {% if request.args.get('filter') == 'grown' %}selected{% endif %}>
+                                Being Grown
+                            </option>
+                            <option value="not_grown" {% if request.args.get('filter') == 'not_grown' %}selected{% endif %}>
+                                Not Being Grown
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sort by:</label>
+                        <select name="sort" class="form-control">
+                            <option value="id_asc" {% if request.args.get('sort') == 'id_asc' %}selected{% endif %}>ID (A-Z)</option>
+                            <option value="id_desc" {% if request.args.get('sort') == 'id_desc' %}selected{% endif %}>ID (Z-A)</option>
+                            <option value="name_asc" {% if request.args.get('sort') == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="name_desc" {% if request.args.get('sort') == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                            <option value="farmers_asc" {% if request.args.get('sort') == 'farmers_asc' %}selected{% endif %}>Farmers (Low-High)</option>
+                            <option value="farmers_desc" {% if request.args.get('sort') == 'farmers_desc' %}selected{% endif %}>Farmers (High-Low)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Apply
+                    </button>
+                    <a href="{{ url_for('admin.dashboard', option='view_crops') }}" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+        {% if crops %}
+        <div class="grid-container">
+            {% for crop in crops %}
+            <div class="data-card">
+                <div class="data-card-header">
+                    <h3><i class="fas fa-seedling"></i> {{ crop.name }}</h3>
+                </div>
+                <div class="data-card-body">
+                    {% if crop.id %}
+                    <p><i class="fas fa-tag"></i> <strong>ID:</strong> {{ crop.id }}</p>
+                    {% endif %}
+                    {% if crop.name %}
+                    <p><i class="fas fa-leaf"></i> <strong>Name:</strong> {{ crop.name }}</p>
+                    {% endif %}
+                    <p><i class="fas fa-calendar-alt"></i> <strong>Being Grown:</strong> {{ crop.being_grown }}</p>
+                    <p><i class="fas fa-calendar-check"></i> <strong>No of Farmers:</strong> {{ crop.no_of_farmers }}</p>
+                </div>
+                <div class="data-card-footer">
+                    <form method="POST" action="{{ url_for('admin.remove_crop') }}"
+                        onsubmit="return confirm('Are you sure you want to remove this crop?');"
+                        style="display: inline;">
+                        <input type="hidden" name="crop_id" value="{{ crop.id }}">
+                        <button type="submit" name="remove_crop" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash-alt"></i> Remove
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No crops found matching your criteria.
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    
     {% else %}
     <div class="farmer-profile-overview">
         <div class="farmer-profile-card">
@@ -403,6 +575,12 @@
                 </button>
                 <button type="submit" name="option" value="view_govt_users" class="action-card">
                     <i class="fas fa-landmark"></i> Govt Users
+                </button>
+                <button type="submit" name="option" value="view_locations" class="action-card">
+                    <i class="fas fa-map-marker-alt"></i> Locations
+                </button>
+                <button type="submit" name="option" value="view_crops" class="action-card">
+                    <i class="fas fa-seedling"></i> Crops
                 </button>
             </form>
         </div>

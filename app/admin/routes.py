@@ -24,6 +24,8 @@ def dashboard():
     farmer_data = None
     farmers = None
     govt_users = None
+    locations = None
+    crops = None
     form1 = RegisterGovtUserForm()
     form2 = RegisterLocationForm()
     form = form1 if selected_option == 'register_govt' else form2 if selected_option == 'register_location' else None
@@ -32,7 +34,6 @@ def dashboard():
     govt_user_count = GovtUser.query.count()
     location_count = Location.query.count()
     crop_count = Crop.query.count()
-    print(f"Farmer Count: {farmer_count}, Govt User Count: {govt_user_count}, Location Count: {location_count}, Crop Count: {crop_count}")
 
     if request.method == 'POST':
         if 'option' in request.form:
@@ -107,7 +108,7 @@ def dashboard():
 
     # Handle GET requests (search/filter/sort)
     if request.method == 'GET':
-        if selected_option in ['view_farmers', 'view_govt_users']:
+        if selected_option in ['view_farmers', 'view_govt_users','view_locations', 'view_crops']:
             search_query = request.args.get('search', '').strip()
             filter_option = request.args.get('filter', '')
             sort_option = request.args.get('sort', 'id_asc')
@@ -168,11 +169,82 @@ def dashboard():
                 
                 govt_users = govt_users_query.all()
 
+        # In the GET request section of the dashboard function, update these parts:
+
+        # In the GET request section of the dashboard function
+
+        elif selected_option == 'view_locations':
+            locations_query = Location.query
+            
+            if search_query:
+                locations_query = locations_query.filter(
+                    or_(
+                        Location.name.ilike(f'%{search_query}%'),
+                        Location.id.ilike(f'%{search_query}%'),
+                        Location.state.ilike(f'%{search_query}%')
+                    )
+                )
+            
+            # Sorting
+            if sort_option == 'id_asc':
+                locations_query = locations_query.order_by(Location.id.asc())
+            elif sort_option == 'id_desc':
+                locations_query = locations_query.order_by(Location.id.desc())
+            elif sort_option == 'name_asc':
+                locations_query = locations_query.order_by(Location.name.asc())
+            elif sort_option == 'name_desc':
+                locations_query = locations_query.order_by(Location.name.desc())
+            elif sort_option == 'state_asc':
+                locations_query = locations_query.order_by(Location.state.asc())
+            elif sort_option == 'state_desc':
+                locations_query = locations_query.order_by(Location.state.desc())
+            
+            locations = locations_query.all()
+
+        elif selected_option == 'view_crops':
+            
+            crops_query = Crop.query
+            
+            if search_query:
+                crops_query = crops_query.filter(
+                    or_(
+                        Crop.name.ilike(f'%{search_query}%'),
+                        Crop.id.ilike(f'%{search_query}%')
+                    )
+                )
+            
+            # Filtering
+            if filter_option == 'grown':
+                crops_query = crops_query.filter(Crop.being_grown == True)
+            elif filter_option == 'not_grown':
+                crops_query = crops_query.filter(Crop.being_grown == False)
+            
+            # Sorting
+            if sort_option == 'id_asc':
+                crops_query = crops_query.order_by(Crop.id.asc())
+            elif sort_option == 'id_desc':
+                crops_query = crops_query.order_by(Crop.id.desc())
+            elif sort_option == 'name_asc':
+                crops_query = crops_query.order_by(Crop.name.asc())
+            elif sort_option == 'name_desc':
+                crops_query = crops_query.order_by(Crop.name.desc())
+            elif sort_option == 'farmers_asc':
+                crops_query = crops_query.order_by(Crop.no_of_farmers.asc())
+            elif sort_option == 'farmers_desc':
+                crops_query = crops_query.order_by(Crop.no_of_farmers.desc())
+            
+            crops = crops_query.all()
+
         # Load default data if no search/filter applied
         if selected_option == 'view_farmers' and farmers is None:
             farmers = Farmer.query.order_by(Farmer.id.asc()).all()
         elif selected_option == 'view_govt_users' and govt_users is None:
             govt_users = GovtUser.query.order_by(GovtUser.id.asc()).all()
+        elif selected_option == 'view_locations' and locations is None:
+            locations = Location.query.order_by(Location.id.asc()).all()
+        elif selected_option == 'view_crops' and crops is None:
+            crops = Crop.query.order_by(Crop.id.asc()).all()
+
 
     return render_template(
         'admin/dashboard.html',
@@ -180,6 +252,8 @@ def dashboard():
         selected_option=selected_option,
         farmers=farmers,
         govt_users=govt_users,
+        locations=locations,
+        crops=crops,
         form=form,
         farmer_count=farmer_count,
         govt_user_count=govt_user_count,
@@ -256,6 +330,22 @@ def edit_govt_user(govt_user_id):
     
     return render_template('admin/edit_govt_user.html', govt_user=govt_user)
 
+@admin_bp.route('/edit_location/<location_id>', methods=['GET', 'POST'])
+@admin_required
+def edit_location(location_id):
+    location = Location.query.get_or_404(location_id)
+    
+    if request.method == 'POST':
+        location.name = request.form.get('name', location.name)
+        location.state = request.form.get('state', location.state)
+        location.country = 'India'  # Default country, can be changed if needed
+        
+        db.session.commit()
+        flash('Location updated successfully', 'success')
+        return redirect(url_for('admin.dashboard', option='view_locations'))
+    
+    return render_template('admin/edit_location.html', location=location)
+
 @admin_bp.route('/remove_farmer', methods=['POST'])
 @admin_required
 def remove_farmer():
@@ -285,3 +375,47 @@ def remove_govt_user():
         flash('Government user not found', 'error')
 
     return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/remove_location', methods=['POST'])
+@admin_required
+def remove_location():
+    location_id = request.form.get('location_id')
+    location = Location.query.get(location_id)
+    
+    if not location:
+        flash('Location not found', 'error')
+        return redirect(url_for('admin.dashboard', option='view_locations'))
+    
+    # Check for associated records
+    if Farmer.query.filter_by(location_id=location_id).count() > 0:
+        flash('Cannot delete location with associated farmers', 'error')
+        return redirect(url_for('admin.dashboard', option='view_locations'))
+    
+    if GovtUser.query.filter_by(location_id=location_id).count() > 0:
+        flash('Cannot delete location with associated government users', 'error')
+        return redirect(url_for('admin.dashboard', option='view_locations'))
+    
+    try:
+        db.session.delete(location)
+        db.session.commit()
+        flash(f'Location {location_id} removed successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting location', 'error')
+    
+    return redirect(url_for('admin.dashboard', option='view_locations'))
+
+@admin_bp.route('/remove_crop', methods=['POST'])
+@admin_required
+def remove_crop():
+    crop_id = request.form.get('crop_id')
+    crop = Crop.query.filter_by(id=crop_id).first()
+    
+    if not crop:
+        flash('Crop not found', 'error')
+    else:
+        db.session.delete(crop)
+        db.session.commit()
+        flash(f'Crop {crop_id} removed successfully', 'success')
+
+    return redirect(url_for('admin.dashboard', option='view_crops'))
