@@ -172,14 +172,14 @@ def dashboard():
         elif 'register_farmer' in request.form and selected_option == 'register_farmer':
             new_farmer_name = request.form['new_farmer_name']
             new_farmer_id = request.form['new_farmer_id']
-            new_farmer_ph_no = request.form.get('new_farmer_phone')
+            new_farmer_phone = request.form.get('new_farmer_phone')
             new_farmer_email = request.form.get('new_farmer_email')
             area_of_land = request.form.get('area_of_land')
             
             if Farmer.query.filter_by(id=new_farmer_id).first():
                 flash('Farmer ID already exists', 'error')
             else:
-                phone = new_farmer_ph_no
+                phone = new_farmer_phone
                 if phone.startswith('0') and len(phone) == 11:
                     phone = phone[1:]
                 if not phone.isdigit() and len(phone) != 13:
@@ -283,7 +283,7 @@ def dashboard():
         current_status=request.args.get('status', '')
     )
 
-@govt_bp.route('/edit_farmer/<farmer_id>', methods=['GET', 'POST'])
+@govt_bp.route('/government/edit_farmer/<farmer_id>', methods=['GET', 'POST'])
 @govt_required
 def edit_farmer(farmer_id):
     farmer = Farmer.query.get_or_404(farmer_id)
@@ -294,7 +294,7 @@ def edit_farmer(farmer_id):
         return redirect(url_for('government.dashboard'))
 
     if request.method == 'POST':
-        phone = request.form.get('ph_no', farmer.ph_no)
+        phone = request.form.get('phone', farmer.phone)
         if phone.startswith('0') and len(phone) == 11:
             phone = phone[1:]
         if not phone.isdigit() and len(phone) != 13:
@@ -306,15 +306,11 @@ def edit_farmer(farmer_id):
         elif len(phone) ==10 and not phone.startswith('+91'):
             phone = '+91' + phone
         farmer.name = request.form.get('farmer_name', farmer.name)
-        farmer.ph_no = phone
-        farmer.mail_id = request.form.get('email', farmer.mail_id)
+        farmer.phone = phone
+        farmer.email = request.form.get('email', farmer.email)
         farmer.soil_type = request.form.get('soil_type')
         farmer.ph_level = request.form.get('ph_level')
-        farmer.nitrogen = request.form.get('nitrogen')
-        farmer.phosphorus = request.form.get('phosphorus')
-        farmer.potassium = request.form.get('potassium')
         farmer.area_of_land = request.form.get('area_of_land')
-        farmer.previous_crop = request.form.get('previous_crop')
         
         db.session.commit()
         flash('Farmer details updated successfully', 'success')

@@ -52,7 +52,7 @@ def dashboard():
                     if not location:
                         flash('Location ID does not exist', 'error')
                     else:
-                        phone = form.ph_no.data
+                        phone = form.phone.data
                         if phone.startswith('0') and len(phone) == 11:
                             phone = phone[1:]
                         if not phone.isdigit() and len(phone) != 13:
@@ -264,13 +264,13 @@ def dashboard():
         current_sort=request.args.get('sort', 'id_asc')
     )
 
-@admin_bp.route('/edit_farmer/<farmer_id>', methods=['GET', 'POST'])
+@admin_bp.route('/admin/edit_farmer/<farmer_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_farmer(farmer_id):
     farmer = Farmer.query.get_or_404(farmer_id)
     
     if request.method == 'POST':
-        phone = request.form.get('ph_no', farmer.ph_no)
+        phone = request.form.get('phone', farmer.phone)
         if phone.startswith('0') and len(phone) == 11:
             phone = phone[1:]
         if not phone.isdigit() and len(phone) != 13:
