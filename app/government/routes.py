@@ -370,31 +370,36 @@ def save_crop():
     will_be_active = selected_crop_id is not None
     
     if farmer.current_crop_id != selected_crop_id:
-        # Update previous crop's active count if it exists
+        # Update previous crop's count if it exists
         if previous_crop_id:
             previous_crop = Crop.query.get(previous_crop_id)
             if previous_crop:
-                previous_crop.no_active_farmers = Farmer.query.filter_by(
-                    current_crop_id=previous_crop_id
-                ).count() - 1  # Subtract 1 since we're changing this farmer
-                if previous_crop.no_active_farmers <= 0:
+                # Count farmers for previous crop excluding the current farmer
+                previous_crop.no_of_farmers = Farmer.query.filter(
+                    Farmer.current_crop_id == previous_crop_id,
+                    Farmer.id != farmer.id
+                ).count()
+                if previous_crop.no_of_farmers <= 0:
                     previous_crop.being_grown = False
-                    previous_crop.no_active_farmers = 0
+                    previous_crop.no_of_farmers = 0
         
-        # Update farmer's crop
+        # Update farmer's crop first
         farmer.previous_crop_id = previous_crop_id
         farmer.current_crop_id = selected_crop_id
         farmer.fertilizer_needed = None
+        
+        # Delete related records
         DiseaseReport.query.filter_by(farmer_id=farmer.id).delete()
         Recommendation.query.filter_by(farmer_id=farmer.id).delete()
         
-        # Update new crop's active count if it exists
+        # Update new crop's count if it exists
         if selected_crop_id:
             new_crop = Crop.query.get(selected_crop_id)
-            new_crop.being_grown = True
-            new_crop.no_active_farmers = Farmer.query.filter_by(
+            # Count farmers for new crop including this farmer
+            new_crop.no_of_farmers = Farmer.query.filter_by(
                 current_crop_id=selected_crop_id
-            ).count() + 1  # Add 1 for this farmer
+            ).count()
+            new_crop.being_grown = new_crop.no_of_farmers > 0
         
         db.session.commit()
 
@@ -406,8 +411,6 @@ def save_crop():
             Farmer.current_crop_id.isnot(None)
         ).count()
         govt_user.no_farmers_active = current_active_count
-        DiseaseReport.query.filter_by(farmer_id=farmer.id).delete()
-        Recommendation.query.filter_by(farmer_id=farmer.id).delete()
         db.session.commit()
         
         flash('Crop updated successfully', 'success')
