@@ -3,6 +3,17 @@
 {% block title %}Edit Farmer{% endblock %}
 {% block body_class %}home{% endblock %}
 
+{% block header_actions %}
+<div class="header-container">
+  <a
+    href="{{ url_for('government.dashboard', option='view_farmers') if session.get('govt_id') else url_for('admin.dashboard', option='view_farmers') }}"
+    class="back-button"
+  >
+    <i class="fas fa-arrow-left"></i> Back
+  </a>
+</div>
+{% endblock %}
+
 {% block content %}
     <div class="card">
         <h2 class="card-title">Edit Farmer: {{ farmer.id }}</h2>
@@ -13,11 +24,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Phone Number</label>
-                <input type="text" name="ph_no" value="{{ farmer.ph_no }}" class="form-control">
+                <input type="text" name="phone" value="{{ farmer.phone }}" class="form-control">
             </div>
             <div class="form-group">
                 <label class="form-label">Email</label>
-                <input type="email" name="email" value="{{ farmer.mail_id }}" class="form-control">
+                <input type="email" name="email" value="{{ farmer.email }}" class="form-control">
             </div>
             <div class="form-group">
                 <label class="form-label">Soil Type</label>
@@ -33,13 +44,13 @@
             
             <div class="form-group">
                 <label class="form-label">pH Level</label>
-                <input type="number" name="pH_level" step="0.1" min="0" max="14" 
-                       value="{{ farmer.pH_level }}" class="form-control">
+                <input type="number" name="ph_level" step="0.1" min="0" max="14" 
+                       value="{{ farmer.ph_level }}" class="form-control">
             </div>
             
             <div class="form-group">
-                <label class="form-label">Location</label>
-                <input type="text" name="location" value="{{ farmer.location }}" class="form-control">
+                <label class="form-label">Location ID</label>
+                <input type="text" name="location" value="{{ farmer.location_id }}" class="form-control">
             </div>
             
             <!-- Add all other farmer fields as needed -->
@@ -47,9 +58,7 @@
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save"></i> Save Changes
             </button>
-            <a href="{{ url_for('admin.dashboard', option='view_farmers') }}" class="btn btn-secondary">
-                <i class="fas fa-times"></i> Cancel
-            </a>
+            
         </form>
     </div>
 {% endblock %}
