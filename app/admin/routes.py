@@ -419,3 +419,18 @@ def remove_crop():
         flash(f'Crop {crop_id} removed successfully', 'success')
 
     return redirect(url_for('admin.dashboard', option='view_crops'))
+
+@admin_bp.route('/get_user_details', methods=['GET'])
+@admin_required
+def get_user_details():
+    user_type = request.args.get('user_type')
+    user_id = request.args.get('user_id')
+    
+    if user_type == 'farmer':
+        user = Farmer.query.get_or_404(user_id)
+        return render_template('admin/_farmer_details.html', farmer=user)
+    elif user_type == 'govt_user':
+        user = GovtUser.query.get_or_404(user_id)
+        return render_template('admin/_govt_user_details.html', govt_user=user)
+    else:
+        return "Invalid user type", 400
