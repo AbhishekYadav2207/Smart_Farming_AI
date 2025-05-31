@@ -5,6 +5,7 @@ from app.utils.decorators import govt_required, session_required
 from app import db
 from sqlalchemy import or_, func
 from app.utils.helpers import update_farmer_counts
+from app.utils.validation import validate_and_format_phone
 
 govt_bp = Blueprint('government', __name__)
 
@@ -180,16 +181,10 @@ def dashboard():
                 flash('Farmer ID already exists', 'error')
             else:
                 phone = new_farmer_phone
-                if phone.startswith('0') and len(phone) == 11:
-                    phone = phone[1:]
-                if not phone.isdigit() and len(phone) != 13:
-                    flash('Invalid phone number', 'error')
-                    phone = None
-                elif phone.startswith('+91') and len(phone) != 13:
-                    flash('phone number must be in +91XXXXXXXXXX format', 'error')
-                    phone = None
-                elif len(phone) ==10 and not phone.startswith('+91'):
-                    phone = '+91' + phone
+                phone,error = validate_and_format_phone(phone)
+                if not phone:
+                    flash(error, 'error')
+                    phone = None               
                 
                 new_farmer = Farmer(
                     name=new_farmer_name,
@@ -295,16 +290,11 @@ def edit_farmer(farmer_id):
 
     if request.method == 'POST':
         phone = request.form.get('phone', farmer.phone)
-        if phone.startswith('0') and len(phone) == 11:
-            phone = phone[1:]
-        if not phone.isdigit() and len(phone) != 13:
-            flash('Invalid phone number', 'error')
+        phone = validate_and_format_phone(phone)
+        if not phone:
+            flash('Invalid phone number format', 'error')
             phone = None
-        elif phone.startswith('+91') and len(phone) != 13:
-            flash('phone number must be in +91XXXXXXXXXX format', 'error')
-            phone = None
-        elif len(phone) ==10 and not phone.startswith('+91'):
-            phone = '+91' + phone
+        
         farmer.name = request.form.get('farmer_name', farmer.name)
         farmer.phone = phone
         farmer.email = request.form.get('email', farmer.email)
