@@ -404,3 +404,15 @@ def save_crop():
         flash('No changes made', 'info')
     
     return redirect(url_for('government.dashboard', option='view_farmers'))
+
+@govt_bp.route('/get_user_details', methods=['GET'])
+@govt_required
+def get_user_details():
+    user_type = 'farmer'
+    user_id = request.args.get('user_id')
+    
+    if user_type == 'farmer':
+        user = Farmer.query.get_or_404(user_id)
+        return render_template('admin/_farmer_details.html', farmer=user)
+    else:
+        return "Invalid user type", 400
