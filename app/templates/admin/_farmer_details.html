@@ -1,0 +1,57 @@
+<h3>Farmer Details: {{ farmer.id }}</h3>
+<div class="details-grid">
+  <div class="detail-item">
+    <span class="detail-label">Name:</span>
+    <span class="detail-value">{{ farmer.name }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Phone:</span>
+    <span class="detail-value">{{ farmer.phone }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Email:</span>
+    <span class="detail-value">{{ farmer.email or 'N/A' }}</span>
+  </div>
+  {% if farmer.location %}
+  <div class="detail-item">
+    <span class="detail-label">Location:</span>
+    <span class="detail-value">{{ farmer.location.name }}, {{ farmer.location.state }}</span>
+  </div>
+  {% endif %}
+  <div class="detail-item">
+    <span class="detail-label">Land Area:</span>
+    <span class="detail-value">{{ farmer.land_area or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Soil Type:</span>
+    <span class="detail-value">{{ farmer.soil_type or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">pH Level:</span>
+    <span class="detail-value">{{ farmer.ph_level or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Nitrogen:</span>
+    <span class="detail-value">{{ farmer.nitrogen or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Phosphorus:</span>
+    <span class="detail-value">{{ farmer.phosphorus or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Potassium:</span>
+    <span class="detail-value">{{ farmer.potassium or 'N/A' }}</span>
+  </div>
+  {% if farmer.current_crop %}
+  <div class="detail-item">
+    <span class="detail-label">Current Crop:</span>
+    <span class="detail-value">{{ farmer.current_crop.name }}</span>
+  </div>
+  {% endif %}
+  {% if farmer.previous_crop %}
+  <div class="detail-item">
+    <span class="detail-label">Previous Crop:</span>
+    <span class="detail-value">{{ farmer.previous_crop.name }}</span>
+  </div>
+  {% endif %}
+</div>
