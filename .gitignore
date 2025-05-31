@@ -1,2 +1,4 @@
-/__pycache__
-*.py[cod]
+__pycache__/
+migrations/
+modifications.txt
+Testusers.txt
