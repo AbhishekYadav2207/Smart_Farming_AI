@@ -1,0 +1,41 @@
+<h3>Government User Details: {{ govt_user.id }}</h3>
+<div class="details-grid">
+  <div class="detail-item">
+    <span class="detail-label">Name:</span>
+    <span class="detail-value">{{ govt_user.name }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Phone:</span>
+    <span class="detail-value">{{ govt_user.phone }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Email:</span>
+    <span class="detail-value">{{ govt_user.email or 'N/A' }}</span>
+  </div>
+  {% if govt_user.location %}
+  <div class="detail-item">
+    <span class="detail-label">Location:</span>
+    <span class="detail-value">{{ govt_user.location.name }}, {{ govt_user.location.state }}</span>
+  </div>
+  {% endif %}
+  <div class="detail-item">
+    <span class="detail-label">Farmers Assigned:</span>
+    <span class="detail-value">{{ govt_user.no_farmers_assigned }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Active Farmers:</span>
+    <span class="detail-value">{{ govt_user.no_farmers_active }}</span>
+  </div>
+    <div class="detail-item">
+        <span class="detail-label">Annual Rainfall</span>
+        <span class="detail-value">{{ govt_user.location.annual_rainfall or 'N/A' }}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Average Temperature</span>
+        <span class="detail-value">{{ govt_user.location.average_temperature or 'N/A' }}</span>
+    </div>
+  <div class="detail-item">
+    <span class="detail-label">Last Login:</span>
+    <span class="detail-value">{{ govt_user.last_login.strftime('%Y-%m-%d %H:%M') if govt_user.last_login else 'Never' }}</span>
+  </div>
+</div>
