@@ -91,12 +91,6 @@ def dashboard():
                     return redirect(url_for('admin.dashboard'))
             else:
                 flash('Please correct the errors in the form', 'error')
-
-        elif 'farmer_id' in request.form and selected_option == 'view_farmer':
-            farmer_id = request.form['farmer_id']
-            farmer_data = Farmer.query.filter_by(id=farmer_id).first()
-            if not farmer_data:
-                flash('Farmer not found', 'error')
                 
         elif 'go_back' in request.form:
             session.pop('selected_option', None)

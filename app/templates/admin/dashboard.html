@@ -110,68 +110,6 @@
     </div>
     {% endif %}
 
-    {% if selected_option == 'view_farmer' %}
-    <div class="card">
-        <h2 class="card-title">View Farmer Data</h2>
-        <form method="POST">
-            <div class="form-group">
-                <label for="farmer_id" class="form-label">Farmer ID</label>
-                <input type="text" id="farmer_id" name="farmer_id" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">
-                <i class="fas fa-search"></i> View Farmer
-            </button>
-        </form>
-
-        {% if farmer_data %}
-        <div class="farmer-details mt-3">
-            <div class="detail-actions">
-                <a href="{{ url_for('admin.edit_farmer', farmer_id=farmer_data.id) }}" class="btn btn-primary">
-                    <i class="fas fa-edit"></i> Edit Farmer
-                </a>
-                <form method="POST" action="{{ url_for('admin.remove_farmer') }}"
-                    onsubmit="return confirm('Are you sure you want to remove this farmer?');">
-                    <input type="hidden" name="farmer_id" value="{{ farmer_data.id }}">
-                    <button type="submit" name="remove_farmer" class="btn btn-danger">
-                        <i class="fas fa-trash-alt"></i> Remove Farmer
-                    </button>
-                </form>
-            </div>
-
-            <div class="details-grid">
-                {% for field in ['name', 'phone', 'email', 'soil_type', 'ph_level', 'land_area', 
-                                'aadhaar_number', 'nitrogen', 'phosphorus', 'potassium'] %}
-                    {% if farmer_data[field] %}
-                    <div class="detail-item">
-                        <span class="detail-label">{{ field|replace('_', ' ')|title }}:</span>
-                        <span class="detail-value">{{ farmer_data[field] }}</span>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-                {% if farmer_data.location %}
-                <div class="detail-item">
-                    <span class="detail-label">Location:</span>
-                    <span class="detail-value">{{ farmer_data.location.name }}, {{ farmer_data.location.state }}</span>
-                </div>
-                {% endif %}
-                {% if farmer_data.current_crop %}
-                <div class="detail-item">
-                    <span class="detail-label">Current Crop:</span>
-                    <span class="detail-value">{{ farmer_data.current_crop.name }}</span>
-                </div>
-                {% endif %}
-                {% if farmer_data.previous_crop %}
-                <div class="detail-item">
-                    <span class="detail-label">Previous Crop:</span>
-                    <span class="detail-value">{{ farmer_data.previous_crop.name }}</span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
-
     {% if selected_option == 'view_farmers' %}
     <div class="card">
         <h2 class="card-title">Registered Farmers</h2>
@@ -572,9 +510,6 @@
                 </button>
                 <button type="submit" name="option" value="register_location" class="action-card">
                     <i class="fas fa-map-marker-alt"></i> Register Location
-                </button>
-                <button type="submit" name="option" value="view_farmer" class="action-card">
-                    <i class="fas fa-search"></i> View Farmer
                 </button>
                 <button type="submit" name="option" value="view_farmers" class="action-card">
                     <i class="fas fa-users"></i> All Farmers
