@@ -4,6 +4,7 @@ from app.models import Farmer, GovtUser, Location, Crop
 from app.admin.forms import RegisterGovtUserForm, RegisterLocationForm
 from app.utils.decorators import admin_required, session_required
 from app import db
+from app.utils.validation import validate_and_format_phone
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -53,16 +54,11 @@ def dashboard():
                         flash('Location ID does not exist', 'error')
                     else:
                         phone = form.phone.data
-                        if phone.startswith('0') and len(phone) == 11:
-                            phone = phone[1:]
-                        if not phone.isdigit() and len(phone) != 13:
-                            flash('Invalid phone number', 'error')
+                        # Validate and format phone number
+                        phone,error = validate_and_format_phone(phone)
+                        if not phone:
+                            flash(error, 'error')
                             phone = None
-                        elif phone.startswith('+91') and len(phone) != 13:
-                            flash('Phone number must be in +91XXXXXXXXXX format', 'error')
-                            phone = None
-                        elif len(phone) == 10 and not phone.startswith('+91'):
-                            phone = '+91' + phone
                         new_govt_user = GovtUser(
                             id=form.id.data,
                             name=form.name.data,
@@ -271,16 +267,10 @@ def edit_farmer(farmer_id):
     
     if request.method == 'POST':
         phone = request.form.get('phone', farmer.phone)
-        if phone.startswith('0') and len(phone) == 11:
-            phone = phone[1:]
-        if not phone.isdigit() and len(phone) != 13:
-            flash('Invalid phone number', 'error')
+        phone,error = validate_and_format_phone(phone)
+        if not phone:
+            flash(error, 'error')
             phone = None
-        elif phone.startswith('+91') and len(phone) != 13:
-            flash('Phone number must be in +91XXXXXXXXXX format', 'error')
-            phone = None
-        elif len(phone) ==10 and not phone.startswith('+91'):
-            phone = '+91' + phone
         farmer.name = request.form.get('name', farmer.name)
         farmer.phone = phone
         farmer.email = request.form.get('email', farmer.email)
@@ -310,16 +300,11 @@ def edit_govt_user(govt_user_id):
             govt_user.password = new_password
             
         phone = request.form.get('phone', govt_user.phone)
-        if phone.startswith('0') and len(phone) == 11:
-            phone = phone[1:]
-        if not phone.isdigit() and len(phone) != 13:
-            flash('Invalid phone number', 'error')
+        phone, error = validate_and_format_phone(phone)
+        if not phone:
+            flash(error, 'error')
             phone = None
-        elif phone.startswith('+91') and len(phone) != 13:
-            flash('Phone number must be in +91XXXXXXXXXX format', 'error')
-            phone = None
-        elif len(phone) == 10 and not phone.startswith('+91'):
-            phone = '+91' + phone
+        
         govt_user.phone = phone
         govt_user.email = request.form.get('email', govt_user.email)
         govt_user.location_id = request.form.get('location_id', govt_user.location_id)

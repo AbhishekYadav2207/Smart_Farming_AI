@@ -7,7 +7,7 @@ from app.models import Location
 class RegisterGovtUserForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     id = StringField('User ID', validators=[DataRequired(), Length(min=3)])
-    ph_no = StringField('Phone Number', validators=[DataRequired(), Length(min=10)])
+    phone = StringField('Phone Number', validators=[DataRequired(), Length(min=10)])
     email = StringField('Email', validators=[Optional()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     location_id = IntegerField('Location ID', validators=[DataRequired()])
