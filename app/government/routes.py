@@ -153,22 +153,6 @@ def dashboard():
                 flash('No changes made', 'info')
             
             return redirect(url_for('government.dashboard', option='view_farmers'))
-        
-        elif 'farmer_id' in request.form and selected_option == 'view_farmer':
-            farmer_id = request.form['farmer_id']
-            farmer_data = Farmer.query.filter_by(id=farmer_id).first()
-            if farmer_data.location != govt_user.location:
-                flash('You do not have access to this farmer\'s data', 'error')
-                return redirect(url_for('government.dashboard', option='view_farmers'))
-            else:
-                farmer_details_incomplete = any(
-                    not getattr(farmer_data, field) for field in ['soil_type', 'ph_level', 'nitrogen', 'phosphorus', 'potassium']
-                )
-                if farmer_details_incomplete:
-                    flash('Farmer details are incomplete', 'warning')
-                    return render_template('government/dashboard.html', farmer_data=farmer_data, govt_user=govt_user, selected_option=selected_option, crop_options=crop_options, farmer_details_incomplete=farmer_details_incomplete)
-            if not farmer_data:
-                flash('Farmer not found', 'error')
 
         elif 'register_farmer' in request.form and selected_option == 'register_farmer':
             new_farmer_name = request.form['new_farmer_name']
