@@ -11,9 +11,11 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    # Initialize database
     db.init_app(app)
     migrate.init_app(app, db)
 
+    # Register blueprints
     from app.auth.routes import auth_bp
     from app.farmer.routes import farmer_bp
     from app.government.routes import govt_bp
@@ -34,4 +36,3 @@ def create_app(config_class=Config):
             return {}
 
     return app
-
