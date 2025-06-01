@@ -91,7 +91,7 @@ class GovtUser(User):
     no_farmers_assigned = db.Column(db.Integer, default=0)
     no_farmers_active = db.Column(db.Integer, default=0)
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(512))
     
     location = db.relationship('Location', back_populates='govt_users')
     
