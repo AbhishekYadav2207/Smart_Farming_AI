@@ -142,7 +142,7 @@
                                class="btn btn-primary btn-sm">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <form method="POST" action="{{ url_for('admin.remove_farmer') }}" 
+                            <form method="POST" action="{{ url_for('government.remove_farmer') }}" 
                                   onsubmit="return confirm('Remove this farmer?');"
                                   style="display: inline;">
                                 <input type="hidden" name="farmer_id" value="{{ farmer.id }}">
