@@ -17,6 +17,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    SESSION_TYPE = 'filesystem'
     ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
     ADMIN_PASSWORD_HASH = os.getenv('ADMIN_PASSWORD_HASH')
     # Session configuration
