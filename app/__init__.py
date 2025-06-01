@@ -2,6 +2,7 @@ from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from config import Config
+import json
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -25,4 +26,12 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(main_bp)
 
+    @app.template_filter('loads')
+    def json_loads_filter(s):
+        try:
+            return json.loads(s)
+        except Exception:
+            return {}
+
     return app
+

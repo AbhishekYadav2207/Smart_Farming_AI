@@ -86,6 +86,8 @@ def dashboard():
     session['selected_option'] = selected_option
     fertilizer_recommendations = None
     disease_result = None
+    disease_reports_count = db.session.query(DiseaseReport).filter_by(farmer_id=farmer.id).count()
+    fertilizer_reports_count = db.session.query(Recommendation).filter_by(farmer_id=farmer.id).count()
 
     if request.method == 'POST':
         if 'option' in request.form:
@@ -178,5 +180,7 @@ def dashboard():
         fertilizer_recommendations=fertilizer_recommendations or latest_recommendation,
         disease_result=disease_result,
         crops=available_crops,
-        profile_complete=farmer.profile_complete
+        profile_complete=farmer.profile_complete,
+        disease_reports_count=disease_reports_count,
+        fertilizer_reports_count=fertilizer_reports_count
     )

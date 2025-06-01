@@ -194,7 +194,7 @@
                 <i class="fas fa-bug"></i> Detect Disease
             </a>
 
-            {% if farmer.disease_reports.count() > 0 %}
+            {% if disease_reports_count > 0 %}
             <div class="disease-history mt-4">
                 <h3><i class="fas fa-history"></i> Previous Reports</h3>
                 <div class="report-list">
@@ -212,6 +212,122 @@
             </div>
             {% endif %}
         </div>
+    {% endif %}
+
+    {% if selected_option == 'disease_reports' %}
+    <div class="card">
+        <h2 class="card-title">Disease Detection Reports</h2>
+        {% if disease_reports_count > 0 %}
+        <div class="reports-list">
+            {% for report in farmer.disease_reports|sort(attribute='date', reverse=True) %}
+            <div class="report-item" onclick="toggleReportDetails(this)">
+                <div class="report-summary">
+                    <div class="report-header clean-layout">
+                        <span class="report-date">{{ report.detection_date.strftime('%Y-%m-%d') }}</span>
+                        <span>-- </span>
+                        <span class="report-disease">{{ report.disease_name }}</span>
+                        <span class="report-confidence">
+                            {% if report.confidence is number %}
+                                {{ (report.confidence * 100)|round(1) }}%
+                            {% else %}
+                                {{ report.confidence }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="report-symptoms">{{ report.symptoms|truncate(100) }}</div>
+                </div>
+                <div class="report-details" style="display: none;">
+                    <div class="detail-section">
+                        <h4>Symptoms:</h4>
+                        <p>{{ report.symptoms }}</p>
+                    </div>
+                    {% if report.treatment %}
+                    {% set treatment_data = report.treatment | safe | loads %}
+                    <div class="detail-section">
+                        <h4>Treatment:</h4>
+                        <div class="treatment-section">
+                            <strong>Organic:</strong>
+                            <ul>
+                            {% for tip in treatment_data.organic %}
+                                <li>{{ tip }}</li>
+                            {% endfor %}
+                            </ul>
+                            <strong>Chemical:</strong>
+                            <ul>
+                            {% for tip in treatment_data.chemical %}
+                                <li>{{ tip }}</li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if report.prevention %}
+                    {% set prevention_data = report.prevention | safe | loads %}
+                    <div class="detail-section">
+                        <h4>Prevention:</h4>
+                        <ul>
+                        {% for item in prevention_data %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No disease reports found.
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if selected_option == 'fertilizer_reports' %}
+    <div class="card">
+        <h2 class="card-title">Fertilizer Analysis Reports</h2>
+        {% if fertilizer_reports_count > 0 %}
+        <div class="reports-list">
+            {% for report in farmer.recommendations|sort(attribute='date', reverse=True) %}
+            <div class="report-item" onclick="toggleReportDetails(this)">
+                <div class="report-summary">
+                    <div class="report-header clean-layout">
+                        <span class="report-date">{{ report.date.strftime('%Y-%m-%d') }}</span>
+                        <span>-- </span>
+                        <span class="report-disease">{{ report.crop.name }}</span>
+                    </div>
+                    <div class="report-recommendation">{{ report.fertilizer_recommendation|truncate(100) }}</div>
+                </div>
+                <div class="report-details" style="display: none;">
+                    <div class="detail-section">
+                        <h4>Crop:</h4>
+                        <p>{{ report.crop.name }}</p>
+                    </div>
+                    <div class="detail-section">
+                        <h4>Fertilizer Recommendation:</h4>
+                        <p>{{ report.fertilizer_recommendation }}</p>
+                    </div>
+                    <div class="detail-section">
+                        <h4>Water Requirement:</h4>
+                        <p>{{ report.water_requirement }}</p>
+                    </div>
+                    {% if report.notes %}
+                    <div class="detail-section">
+                        <h4>Additional Notes:</h4>
+                        <p>{{ report.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No fertilizer reports found.
+        </div>
+        {% endif %}
+    </div>
     {% endif %}
 
     {% if selected_option == 'monitoring' %}
@@ -325,6 +441,14 @@
                     <i class="fas fa-bug"></i>
                     <span>Disease Detection</span> 
                 </button>
+                <button type="submit" name="option" value="disease_reports" class="action-card">
+                    <i class="fas fa-file-medical-alt"></i>
+                    <span>Disease Reports</span>
+                </button>
+                <button type="submit" name="option" value="fertilizer_reports" class="action-card">
+                    <i class="fas fa-file-signature"></i>
+                    <span>Fertilizer Reports</span>
+                </button>
                 <button type="submit" name="option" value="monitoring" class="action-card">
                     <i class="fas fa-seedling"></i>
                     <span>Crop Monitoring</span> 
@@ -333,6 +457,121 @@
         </div>
     </div>
 {% endif %}
+
+<style>
+
+/* Base styles (Light Mode Default) */
+
+.clean-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.clean-layout .report-date {
+    font-weight: bold;
+    color: #333;
+    flex: 0 0 auto;
+    min-width: 100px;
+}
+
+.clean-layout .report-disease {
+    font-weight: 600;
+    flex: 1;
+    text-align: left;
+    padding-left: 10px;
+    color: #2c3e50;
+}
+
+.clean-layout .report-confidence {
+    font-weight: bold;
+    color: #1e88e5;
+    flex: 0 0 auto;
+    text-align: right;
+    min-width: 60px;
+}
+
+.detail-section ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 0;
+}
+
+.treatment-section {
+    margin-top: 10px;
+}
+
+.treatment-section strong {
+    display: block;
+    margin-top: 10px;
+    color: #2c3e50;
+}
+
+.report-details {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+    border-left: 4px solid #4caf50;
+}
+
+.reports-list {
+    margin-top: 20px;
+}
+
+.report-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #fff;
+    color: #000;
+}
+
+.report-item:hover {
+    background-color: #f9f9f9;
+}
+
+.report-item.active {
+    background-color: #f0f8ff;
+    border-color: #4a90e2;
+}
+
+.report-summary {
+    display: flex;
+    flex-direction: column;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #000;
+}
+
+.report-date {
+    color: #666;
+}
+
+.detail-section {
+    margin-bottom: 10px;
+}
+
+.detail-section h4 {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+/* Dark Mode Support */
+
+
+</style>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -388,6 +627,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+// Add this to your existing script section
+function toggleReportDetails(element) {
+    const details = element.querySelector('.report-details');
+    const isVisible = details.style.display === 'block';
+    
+    // Close all other open reports first
+    document.querySelectorAll('.report-details').forEach(d => {
+        d.style.display = 'none';
+        d.parentElement.classList.remove('active');
+    });
+    
+    // Toggle the clicked one
+    if (!isVisible) {
+        details.style.display = 'block';
+        element.classList.add('active');
+    }
+}
 </script>
 
 {% endblock %}
