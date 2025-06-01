@@ -54,4 +54,8 @@
     <span class="detail-value">{{ farmer.previous_crop.name }}</span>
   </div>
   {% endif %}
+  <div class="detail-item">
+    <span class="detail-label">Last Login:</span>
+    <span class="detail-value">{{ farmer.last_login.strftime('%Y-%m-%d %H:%M') if farmer.last_login else 'Never' }}</span>
+  </div>
 </div>
