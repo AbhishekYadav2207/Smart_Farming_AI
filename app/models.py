@@ -2,6 +2,7 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import event
 
@@ -29,7 +30,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(15), nullable=False)
     email = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now(ZoneInfo("Asia/Kolkata")))
     last_login = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
     type = db.Column(db.String(20))
@@ -134,7 +135,7 @@ class Recommendation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     farmer_id = db.Column(db.String(50), db.ForeignKey('farmers.id'))
     crop_id = db.Column(db.Integer, db.ForeignKey('crops.id'))
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    date = db.Column(db.DateTime, default=datetime.now(ZoneInfo("Asia/Kolkata")))
     fertilizer_recommendation = db.Column(db.Text)
     water_requirement = db.Column(db.Float)
     notes = db.Column(db.Text)
@@ -151,7 +152,7 @@ class DiseaseReport(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     farmer_id = db.Column(db.String(50), db.ForeignKey('farmers.id'))
     image_path = db.Column(db.String(255), nullable=False)
-    detection_date = db.Column(db.DateTime, default=datetime.utcnow)
+    detection_date = db.Column(db.DateTime, default=datetime.now(ZoneInfo("Asia/Kolkata")))
     disease_name = db.Column(db.String(100))
     confidence = db.Column(db.String(50))  # High/Medium/Low
     symptoms = db.Column(db.Text)
