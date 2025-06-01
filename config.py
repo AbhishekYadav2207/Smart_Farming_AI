@@ -7,7 +7,7 @@ import urllib.parse
 load_dotenv()
 
 class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY', 'your_secret_key_here')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'e16221919a79e74e0b1f5cee866667991ec26d0aeb3568a4fc7b250db98a6cc5')
     # PostgreSQL configuration for Render
     DB_USER = os.getenv('DB_USER')
     DB_PASSWORD = urllib.parse.quote_plus(os.getenv('DB_PASSWORD'))
