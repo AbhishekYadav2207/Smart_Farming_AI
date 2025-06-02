@@ -81,7 +81,6 @@ def dashboard():
                             crop_id = 0
                         else:
                             crop_id = Crop.query.order_by(Crop.id.desc()).first().id
-
                         existing_crops = {normalize_name(crop.name): crop for crop in Crop.query.all()}  # normalize db names once
 
                         for crop_raw in [crop.strip() for crop in analysis_result.split(',') if crop.strip()]:
@@ -95,7 +94,7 @@ def dashboard():
                                 db.session.add(new_crop)
                                 db.session.commit()
                                 existing_crops[normalized_input] = new_crop
-                            all_crops.append(existing_crops[normalized_input].name)  # Store the name directly
+                            all_crops.append(existing_crops[normalized_input].name)
 
                         current_crop = farmer_data.current_crop
                         if current_crop and current_crop.name in all_crops:
@@ -139,23 +138,18 @@ def dashboard():
                 
                 # Update counts if activity status changed
                 if was_active != will_be_active:
+                    # Ensure no_farmers_active is not None
+                    if govt_user.no_farmers_active is None:
+                        govt_user.no_farmers_active = 0
+
                     if will_be_active:
-                        f_a = govt_user.no_farmers_active
-                        if f_a is None:
-                            f_a = 0
-                        f_a += 1
-                        govt_user.no_farmers_active = f_a
+                        govt_user.no_farmers_active += 1
                     else:
-                        f_a = govt_user.no_farmers_active
-                        if f_a is None:
-                            f_a = 0
-                        if f_a > 0:
-                            f_a -= 1
-                        else:
-                            f_a = 0
-                        govt_user.no_farmers_active = f_a
+                        govt_user.no_farmers_active = max(0, govt_user.no_farmers_active - 1)
+                        # Remove farmer's data if they become inactive
                         DiseaseReport.query.filter_by(farmer_id=farmer.id).delete()
                         Recommendation.query.filter_by(farmer_id=farmer.id).delete()
+
                     db.session.commit()
                 
                 flash('Crop updated successfully', 'success')
@@ -193,11 +187,8 @@ def dashboard():
                 db.session.add(new_farmer)
                 
                 # Update farmer count
-                f_c = govt_user.no_farmers_assigned
-                if f_c is None:
-                    f_c = 0
-                f_c+=1
-                govt_user.no_farmers_assigned = f_c
+                govt_user.no_farmers_assigned = (govt_user.no_farmers_assigned or 0) + 1
+                location.no_of_farmers = (location.no_of_farmers or 0) + 1
                 db.session.commit()
 
                 update_farmer_counts(govt_user.location_id)
@@ -315,11 +306,13 @@ def remove_farmer():
         flash('You can only remove farmers in your area', 'error')
     else:
         db.session.delete(farmer)
-        db.session.commit()
-        f_c = govt_user.no_farmers_assigned
-        if f_c is not None and f_c > 0:
-            f_c -= 1
-            govt_user.no_farmers_assigned = f_c
+        # Safely decrement the count
+        if govt_user.no_farmers_assigned:
+            govt_user.no_farmers_assigned = max(0, govt_user.no_farmers_assigned - 1)
+
+        if farmer.location.no_of_farmers:
+            farmer.location.no_of_farmers = max(0, farmer.location.no_of_farmers - 1)
+
         db.session.commit()
         flash(f'Farmer {farmer_id} removed successfully', 'success')
 

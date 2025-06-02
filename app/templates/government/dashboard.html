@@ -82,6 +82,7 @@
     </div>
     {% endif %}
 
+
     {% if selected_option == 'view_farmers' %}
     <div class="card">
         <h2 class="card-title">Farmers in {{ govt_user.location }}</h2>
@@ -136,8 +137,8 @@
                         </div>
                         <div class="data-card-footer">
                             <button onclick="showUserDetails('farmer', '{{ farmer.id }}')" class="btn btn-info btn-sm">
-    <i class="fas fa-eye"></i> View
-  </button>
+                                <i class="fas fa-eye"></i> View
+                            </button>
                             <a href="{{ url_for('government.edit_farmer', farmer_id=farmer.id) }}" 
                                class="btn btn-primary btn-sm">
                                 <i class="fas fa-edit"></i> Edit
