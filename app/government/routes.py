@@ -315,7 +315,7 @@ def remove_farmer():
 
     return redirect(url_for('government.dashboard', option='view_farmers'))
 
-@govt_bp.route('/save_crop', methods=['POST'])
+@govt_bp.route('government/save_crop', methods=['POST'])
 @govt_required
 def save_crop():
     farmer_id = request.form.get('farmer_id')
