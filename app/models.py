@@ -16,6 +16,8 @@ class Location(db.Model):
     annual_rainfall = db.Column(db.Float)
     average_temperature = db.Column(db.Float)
     soil_types = db.Column(db.String(255))
+    no_of_farmers = db.Column(db.Integer, default=0)
+    no_of_govt_users = db.Column(db.Integer, default=0)
     
     farmers = db.relationship('Farmer', back_populates='location', cascade='all, delete-orphan')
     govt_users = db.relationship('GovtUser', back_populates='location', cascade='all, delete-orphan')
