@@ -9,6 +9,9 @@ from app.utils.validation import validate_and_format_phone
 
 govt_bp = Blueprint('government', __name__)
 
+def normalize_name(name):
+    return name.replace(" ", "").lower()
+
 @govt_bp.route('/govt_dashboard', methods=['GET', 'POST'])
 @govt_required
 @session_required
@@ -78,14 +81,21 @@ def dashboard():
                             crop_id = 0
                         else:
                             crop_id = Crop.query.order_by(Crop.id.desc()).first().id
-                        for crop_name in [crop.strip() for crop in analysis_result.split(',') if crop.strip()]:
-                            crop = Crop.query.filter_by(name=crop_name).first()
-                            if not crop:
+
+                        existing_crops = {normalize_name(crop.name): crop for crop in Crop.query.all()}  # normalize db names once
+
+                        for crop_raw in [crop.strip() for crop in analysis_result.split(',') if crop.strip()]:
+                            normalized_input = normalize_name(crop_raw)
+                            if normalized_input in existing_crops:
+                                crop = existing_crops[normalized_input]
+                            else:
                                 crop_id += 1
-                                new_crop = Crop(name=crop_name, id=crop_id)
+                                formatted_name = crop_raw.replace("_", " ").title()  # title-case with proper spacing
+                                new_crop = Crop(name=formatted_name, id=crop_id)
                                 db.session.add(new_crop)
                                 db.session.commit()
-                            all_crops.append(crop_name)  # Just store the name
+                                existing_crops[normalized_input] = new_crop
+                            all_crops.append(existing_crops[normalized_input].name)  # Store the name directly
 
                         current_crop = farmer_data.current_crop
                         if current_crop and current_crop.name in all_crops:
