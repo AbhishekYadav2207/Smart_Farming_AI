@@ -122,7 +122,7 @@
                         <div class="data-card-header">
                             <h3><i class="fas fa-user"></i> {{ farmer.id }}</h3>
                             <span class="status-badge {% if farmer.soil_type and farmer.crop_selected %}complete{% else %}incomplete{% endif %}">
-                                {% if farmer.soil_type and farmer.crop_selected %}Active{% else %}Setup Needed{% endif %}
+                                {% if farmer.soil_type and farmer.current_crop %}Active{% elif farmer.soil_type %}Inactive{% else %}Setup Needed{% endif %}
                             </span>
                         </div>
                         <div class="data-card-body">
