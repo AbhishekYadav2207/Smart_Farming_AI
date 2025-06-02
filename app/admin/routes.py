@@ -69,6 +69,12 @@ def dashboard():
                             type='govt_user'  # Set type automatically
                         )
                         db.session.add(new_govt_user)
+                        # Update location's govt user count
+                        if location.no_of_govt_users is None:
+                            location.no_of_govt_users = 0
+                        nol = location.no_of_govt_users
+                        nol+=1
+                        location.no_of_govt_users = nol
                         db.session.commit()
                         flash('Government user registered successfully', 'success')
                         return redirect(url_for('admin.dashboard'))
@@ -192,7 +198,6 @@ def dashboard():
             locations = locations_query.all()
 
         elif selected_option == 'view_crops':
-            
             crops_query = Crop.query
             
             if search_query:
@@ -301,8 +306,20 @@ def edit_govt_user(govt_user_id):
         
         govt_user.phone = phone
         govt_user.email = request.form.get('email', govt_user.email)
+        if govt_user.location_id != request.form.get('location_id'):
+            # If location_id is changed, update the count in the old and new locations
+            old_location = Location.query.get(govt_user.location_id)
+            if old_location:
+                old_location.no_of_govt_users = max(0, old_location.no_of_govt_users - 1)
+            new_location = Location.query.get(request.form.get('location_id'))
+            if new_location:
+                if new_location.no_of_govt_users is None:
+                    new_location.no_of_govt_users = 0
+                gcount = new_location.no_of_govt_users
+                gcount += 1
+                new_location.no_of_govt_users = gcount
         govt_user.location_id = request.form.get('location_id', govt_user.location_id)
-        
+
         db.session.commit()
         flash('Government user updated successfully', 'success')
         return redirect(url_for('admin.dashboard', option='view_govt_users'))
@@ -335,6 +352,11 @@ def remove_farmer():
         flash('Farmer not found', 'error')
     else:
         db.session.delete(farmer)
+        # Update location's farmer count
+        location = Location.query.get(farmer.location_id)  
+        if location.no_of_farmers:
+        # Ensure no_of_farmers does not go below 0
+            location.no_of_farmers = max(0, location.no_of_farmers - 1)
         db.session.commit()
         flash(f'Farmer {farmer_id} removed successfully', 'success')
 
@@ -348,12 +370,17 @@ def remove_govt_user():
     govt_user = GovtUser.query.filter_by(id=govt_user_id).first()
     if govt_user:
         db.session.delete(govt_user)
+        # Update location's govt user count
+        location = Location.query.get(govt_user.location_id)
+        if location.no_of_govt_users:
+            # Ensure no_of_govt_users does not go below 0
+            location.no_of_govt_users = max(0, location.no_of_govt_users - 1)
         db.session.commit()
         flash(f'Government user {govt_user_id} removed successfully', 'success')
     else:
         flash('Government user not found', 'error')
 
-    return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('admin.dashboard', option='view_govt_users'))
 
 @admin_bp.route('/remove_location', methods=['POST'])
 @admin_required
