@@ -165,6 +165,7 @@ def dashboard():
         elif 'go_back' in request.form:
             session.pop('selected_option', None)
             selected_option = None
+            redirect(url_for('farmer.dashboard'))
 
     # Get latest recommendation
     latest_recommendation = Recommendation.query.filter_by(farmer_id=farmer.id)\
