@@ -419,6 +419,12 @@ def remove_crop():
     
     if not crop:
         flash('Crop not found', 'error')
+    elif crop.no_of_farmers > 0:
+        flash('Cannot delete crop with associated farmers', 'error')
+        return redirect(url_for('admin.dashboard', option='view_crops'))
+    elif crop.being_grown:
+        flash('Cannot delete crop that is currently being grown', 'error')
+        return redirect(url_for('admin.dashboard', option='view_crops'))
     else:
         db.session.delete(crop)
         db.session.commit()
