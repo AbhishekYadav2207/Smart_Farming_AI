@@ -165,80 +165,80 @@ def dashboard():
                 
                 govt_users = govt_users_query.all()
 
-        # In the GET request section of the dashboard function, update these parts:
+            # In the GET request section of the dashboard function, update these parts:
 
-        # In the GET request section of the dashboard function
+            # In the GET request section of the dashboard function
 
-        elif selected_option == 'view_locations':
-            locations_query = Location.query
-            
-            if search_query:
-                locations_query = locations_query.filter(
-                    or_(
-                        Location.name.ilike(f'%{search_query}%'),
-                        Location.id.ilike(f'%{search_query}%'),
-                        Location.state.ilike(f'%{search_query}%')
+            elif selected_option == 'view_locations':
+                locations_query = Location.query
+                
+                if search_query:
+                    locations_query = locations_query.filter(
+                        or_(
+                            Location.name.ilike(f'%{search_query}%'),
+                            Location.id.ilike(f'%{search_query}%'),
+                            Location.state.ilike(f'%{search_query}%')
+                        )
                     )
-                )
-            
-            # Sorting
-            if sort_option == 'id_asc':
-                locations_query = locations_query.order_by(Location.id.asc())
-            elif sort_option == 'id_desc':
-                locations_query = locations_query.order_by(Location.id.desc())
-            elif sort_option == 'name_asc':
-                locations_query = locations_query.order_by(Location.name.asc())
-            elif sort_option == 'name_desc':
-                locations_query = locations_query.order_by(Location.name.desc())
-            elif sort_option == 'state_asc':
-                locations_query = locations_query.order_by(Location.state.asc())
-            elif sort_option == 'state_desc':
-                locations_query = locations_query.order_by(Location.state.desc())
-            
-            locations = locations_query.all()
+                
+                # Sorting
+                if sort_option == 'id_asc':
+                    locations_query = locations_query.order_by(Location.id.asc())
+                elif sort_option == 'id_desc':
+                    locations_query = locations_query.order_by(Location.id.desc())
+                elif sort_option == 'name_asc':
+                    locations_query = locations_query.order_by(Location.name.asc())
+                elif sort_option == 'name_desc':
+                    locations_query = locations_query.order_by(Location.name.desc())
+                elif sort_option == 'state_asc':
+                    locations_query = locations_query.order_by(Location.state.asc())
+                elif sort_option == 'state_desc':
+                    locations_query = locations_query.order_by(Location.state.desc())
+                
+                locations = locations_query.all()
 
-        elif selected_option == 'view_crops':
-            crops_query = Crop.query
-            
-            if search_query:
-                crops_query = crops_query.filter(
-                    or_(
-                        Crop.name.ilike(f'%{search_query}%'),
-                        Crop.id.ilike(f'%{search_query}%')
+            elif selected_option == 'view_crops':
+                crops_query = Crop.query
+                
+                if search_query:
+                    crops_query = crops_query.filter(
+                        or_(
+                            Crop.name.ilike(f'%{search_query}%'),
+                            Crop.id.ilike(f'%{search_query}%')
+                        )
                     )
-                )
-            
-            # Filtering
-            if filter_option == 'grown':
-                crops_query = crops_query.filter(Crop.being_grown == True)
-            elif filter_option == 'not_grown':
-                crops_query = crops_query.filter(Crop.being_grown == False)
-            
-            # Sorting
-            if sort_option == 'id_asc':
-                crops_query = crops_query.order_by(Crop.id.asc())
-            elif sort_option == 'id_desc':
-                crops_query = crops_query.order_by(Crop.id.desc())
-            elif sort_option == 'name_asc':
-                crops_query = crops_query.order_by(Crop.name.asc())
-            elif sort_option == 'name_desc':
-                crops_query = crops_query.order_by(Crop.name.desc())
-            elif sort_option == 'farmers_asc':
-                crops_query = crops_query.order_by(Crop.no_of_farmers.asc())
-            elif sort_option == 'farmers_desc':
-                crops_query = crops_query.order_by(Crop.no_of_farmers.desc())
-            
-            crops = crops_query.all()
+                
+                # Filtering
+                if filter_option == 'grown':
+                    crops_query = crops_query.filter(Crop.being_grown == True)
+                elif filter_option == 'not_grown':
+                    crops_query = crops_query.filter(Crop.being_grown == False)
+                
+                # Sorting
+                if sort_option == 'id_asc':
+                    crops_query = crops_query.order_by(Crop.id.asc())
+                elif sort_option == 'id_desc':
+                    crops_query = crops_query.order_by(Crop.id.desc())
+                elif sort_option == 'name_asc':
+                    crops_query = crops_query.order_by(Crop.name.asc())
+                elif sort_option == 'name_desc':
+                    crops_query = crops_query.order_by(Crop.name.desc())
+                elif sort_option == 'farmers_asc':
+                    crops_query = crops_query.order_by(Crop.no_of_farmers.asc())
+                elif sort_option == 'farmers_desc':
+                    crops_query = crops_query.order_by(Crop.no_of_farmers.desc())
+                
+                crops = crops_query.all()
 
-        # Load default data if no search/filter applied
-        if selected_option == 'view_farmers' and farmers is None:
-            farmers = Farmer.query.order_by(Farmer.id.asc()).all()
-        elif selected_option == 'view_govt_users' and govt_users is None:
-            govt_users = GovtUser.query.order_by(GovtUser.id.asc()).all()
-        elif selected_option == 'view_locations' and locations is None:
-            locations = Location.query.order_by(Location.id.asc()).all()
-        elif selected_option == 'view_crops' and crops is None:
-            crops = Crop.query.order_by(Crop.id.asc()).all()
+            # Load default data if no search/filter applied
+            if selected_option == 'view_farmers' and farmers is None:
+                farmers = Farmer.query.order_by(Farmer.id.asc()).all()
+            elif selected_option == 'view_govt_users' and govt_users is None:
+                govt_users = GovtUser.query.order_by(GovtUser.id.asc()).all()
+            elif selected_option == 'view_locations' and locations is None:
+                locations = Location.query.order_by(Location.id.asc()).all()
+            elif selected_option == 'view_crops' and crops is None:
+                crops = Crop.query.order_by(Crop.id.asc()).all()
 
 
     return render_template(
