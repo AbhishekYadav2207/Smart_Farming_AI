@@ -446,3 +446,11 @@ def get_user_details():
         return render_template('admin/_govt_user_details.html', govt_user=user)
     else:
         return "Invalid user type", 400
+
+@admin_bp.route('/get_location_details', methods=['GET'])
+@admin_required
+def get_location_details():
+    location_id = request.args.get('location_id')
+    location = Location.query.get_or_404(location_id)
+    # Fetch location data and render template or return HTML
+    return render_template('admin/_location_details.html', location=location)
