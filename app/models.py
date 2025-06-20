@@ -11,8 +11,12 @@ class Location(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+    district = db.Column(db.String(100), nullable=False)
     state = db.Column(db.String(100), nullable=False)
     country = db.Column(db.String(100), default='India')
+    officetype = db.Column(db.String(50))
+    latitude = db.Column(db.Float(precision=5))
+    longitude = db.Column(db.Float(precision=5))
     annual_rainfall = db.Column(db.Float)
     average_temperature = db.Column(db.Float)
     soil_types = db.Column(db.String(255))
