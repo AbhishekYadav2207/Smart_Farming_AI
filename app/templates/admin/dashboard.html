@@ -103,6 +103,27 @@
                     <span class="text-danger">{{ error }}</span>
                 {% endfor %}
             </div>
+            <div class="form-group">
+                <label for="district" class="form-label">District:</label>
+                {{ form.district(class="form-control") }}
+                {% for error in form.district.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="latitude" class="form-label">Latitude:</label>
+                {{ form.latitude(class="form-control") }}
+                {% for error in form.latitude.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="longitude" class="form-label">Longitude:</label>
+                {{ form.longitude(class="form-control") }}
+                {% for error in form.longitude.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
             <button type="submit" class="btn btn-primary btn-block">
                 <i class="fas fa-user-plus"></i> Register Location
             </button>
