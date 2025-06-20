@@ -19,7 +19,10 @@ class RegisterGovtUserForm(FlaskForm):
 class RegisterLocationForm(FlaskForm):
     id = IntegerField('Location ID', validators=[DataRequired(), NumberRange(min=1)])
     name = StringField('Location Name', validators=[DataRequired()])
+    district = StringField('District', validators=[DataRequired()])
     state = StringField('State', validators=[DataRequired()])
+    latitude = StringField('Latitude', validators=[Optional()])
+    longitude = StringField('Longitude', validators=[Optional()])
 
     def validate_id(self, field):
         if Location.query.filter_by(id=field.data).first():
