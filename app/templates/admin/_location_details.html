@@ -1,0 +1,45 @@
+<h3>Location Details: {{ location.id }}</h3>
+<div class="details-grid">
+  <div class="detail-item">
+    <span class="detail-label">Name:</span>
+    <span class="detail-value">{{ location.name }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">District:</span>
+    <span class="detail-value">{{ location.district}}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">State:</span>
+    <span class="detail-value">{{ location.state or 'N/A' }}</span>
+  </div>
+  {% if location.location %}
+  <div class="detail-item">
+    <span class="detail-label">Country:</span>
+    <span class="detail-value">{{ location.country }}, {{ location.location.state }}</span>
+  </div>
+  {% endif %}
+  <div class="detail-item">
+    <span class="detail-label">Office Type:</span>
+    <span class="detail-value">{{ location.officetype }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Latitude:</span>
+    <span class="detail-value">{{ location.latitude }}</span>
+  </div>
+    <div class="detail-item">
+        <span class="detail-label">Longitude</span>
+        <span class="detail-value">{{ location.longitude or 'N/A' }}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Annual Rainfall</span>
+        <span class="detail-value">{{ location.annual_rainfall or 'N/A' }}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Average Temperature</span>
+        <span class="detail-value">{{ location.average_temperature or 'N/A' }}</span>
+    </div>
+  <div class="detail-item">
+    <span class="detail-label">No of Farmers:</span>
+    <span class="detail-value">{{ location.no_of_farmers }}</span>
+  </div>
+</div>
