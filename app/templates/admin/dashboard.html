@@ -311,6 +311,8 @@
             <!-- In the view_locations section -->
             <form method="GET" action="{{ url_for('admin.dashboard') }}" class="search-form">
                 <input type="hidden" name="option" value="view_locations">
+                <!-- Add hidden fields to preserve current filter/sort -->
+                <input type="hidden" name="sort" value="{{ request.args.get('sort', 'id_asc') }}">
                 <div class="form-group">
                     <div class="input-with-icon">
                         <i class="fas fa-search"></i>
@@ -361,6 +363,9 @@
                         {% endif %}
                     </div>
                     <div class="data-card-footer">
+                        <button onclick="showLocationDetails('{{ location.id }}')" class="btn btn-info btn-sm">
+                            <i class="fas fa-eye"></i> View
+                        </button>
                         <a href="{{ url_for('admin.edit_location', location_id=location.id) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-edit"></i> Edit
                         </a>
@@ -393,6 +398,9 @@
             <!-- In the view_crops section -->
             <form method="GET" action="{{ url_for('admin.dashboard') }}" class="search-form">
                 <input type="hidden" name="option" value="view_crops">
+                <!-- Add hidden fields to preserve current filter/sort -->
+                <input type="hidden" name="filter" value="{{ request.args.get('filter', '') }}">
+                <input type="hidden" name="sort" value="{{ request.args.get('sort', 'id_asc') }}">
                 <div class="form-group">
                     <div class="input-with-icon">
                         <i class="fas fa-search"></i>
@@ -535,8 +543,8 @@
 </div>
 
 <style>
-/* Modal styles */
-.modal {
+  /* Modal styles */
+  .modal {
     display: none;
     position: fixed;
     z-index: 1000;
@@ -545,116 +553,80 @@
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.6); /* Darker background for better focus */
-    animation: fadeIn 0.4s ease forwards; /* Fade-in animation */
-}
+    background-color: rgba(0, 0, 0, 0.4);
+  }
 
-.modal-content {
+  .modal-content {
     background-color: #fefefe;
     margin: 5% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
     max-width: 800px;
-    border-radius: 12px; /* Slightly larger border radius */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Deeper shadow for depth */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     color: #000;
-    transform: translateY(-30px); /* Initial position for animation */
-    opacity: 0; /* Initial opacity for animation */
-    animation: slideIn 0.4s ease forwards; /* Slide-in animation */
-}
+  }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateY(-30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.close-modal {
+  .close-modal {
     color: #aaa;
     float: right;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    transition: color 0.3s ease; /* Smooth color transition */
-}
+  }
 
-.close-modal:hover {
-    color: var(--primary); /* Change to primary color on hover */
-}
+  .close-modal:hover {
+    color: black;
+  }
 
-/* Details grid styles */
-.details-grid {
+  /* Details grid styles */
+  .details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 15px;
     margin-top: 20px;
-}
+  }
 
-.detail-item {
-    padding: 15px; /* Increased padding for better spacing */
+  .detail-item {
+    padding: 10px;
     background: #f5f5f5;
-    border-radius: 8px; /* Larger border radius for a softer look */
+    border-radius: 5px;
     color: #000;
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effects */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-}
+  }
 
-.detail-item:hover {
-    transform: translateY(-5px); /* Lift effect on hover */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
-}
-
-.detail-label {
+  .detail-label {
     font-weight: bold;
     display: block;
     margin-bottom: 5px;
-}
+  }
 
-/* Dark mode compatibility */
-@media (prefers-color-scheme: dark) {
+  /* Dark mode compatibility */
+  @media (prefers-color-scheme: dark) {
     .modal-content {
-        background-color: #1e1e1e;
-        color: #f0f0f0;
-        border: 1px solid #444;
-        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1);
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+      border: 1px solid #444;
+      box-shadow: 0 4px 8px rgba(255, 255, 255, 0.05);
     }
 
     .close-modal {
-        color: #ccc;
+      color: #ccc;
     }
 
     .close-modal:hover {
-        color: #fff;
+      color: #fff;
     }
 
     .detail-item {
-        background: #2a2a2a;
-        color: #f0f0f0;
-        box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
-    }
-
-    .detail-item:hover {
-        background: #3a3a3a; /* Darker background on hover */
-        transform: translateY(-5px);
-        box-shadow: 0 4px 10px rgba(255, 255, 255, 0.3);
+      background: #2a2a2a;
+      color: #f0f0f0;
     }
 
     .detail-label {
-        color: #ffffff;
+      color: #ffffff;
     }
-}
-
+  }
 </style>
 
 
@@ -733,6 +705,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function showUserDetails(userType, userId) {
     fetch(`/admin/get_user_details?user_type=${userType}&user_id=${userId}`)
+      .then(response => response.text())
+      .then(html => {
+        modalContent.innerHTML = html;
+        modal.style.display = "block";
+      });
+  }
+
+  function showLocationDetails(locationId) {
+    fetch(`/admin/get_location_details?location_id=${locationId}`)
       .then(response => response.text())
       .then(html => {
         modalContent.innerHTML = html;
