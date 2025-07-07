@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from app import db
 from datetime import datetime
 import json
+from app.ai_services import chatbot_ai
 
 farmer_bp = Blueprint('farmer', __name__)
 main_bp = Blueprint('main', __name__)
@@ -165,7 +166,6 @@ def dashboard():
         elif 'go_back' in request.form:
             session.pop('selected_option', None)
             selected_option = None
-            redirect(url_for('farmer.dashboard'))
 
     # Get latest recommendation
     latest_recommendation = Recommendation.query.filter_by(farmer_id=farmer.id)\
@@ -185,3 +185,46 @@ def dashboard():
         disease_reports_count=disease_reports_count,
         fertilizer_reports_count=fertilizer_reports_count
     )
+
+@farmer_bp.route('/chatbot_query', methods=['POST'])
+@farmer_required
+@session_required
+def chatbot_query():
+    data = request.get_json()
+    user_query = data.get('query')
+    farmer_id = session.get('farmer_id')
+
+    if not user_query or not farmer_id:
+        return jsonify({'response': 'Invalid request.'}), 400
+
+    # Initialize chat history in session if not exists
+    if 'chat_history' not in session:
+        session['chat_history'] = []
+
+    # Store user message in history
+    session['chat_history'].append({'role': 'user', 'content': user_query})
+
+    response_text = chatbot_ai.generate_chatbot_response(user_query, farmer_id)
+    
+    # Store bot response in history
+    session['chat_history'].append({'role': 'bot', 'content': response_text})
+    
+    # Save the session
+    session.modified = True
+
+    return jsonify({'response': response_text})
+
+@farmer_bp.route('/chatbot_history', methods=['GET'])
+@farmer_required
+@session_required
+def get_chat_history():
+    chat_history = session.get('chat_history', [])
+    return jsonify({'history': chat_history})
+
+@farmer_bp.route('/chatbot_clear', methods=['POST'])
+@farmer_required
+@session_required
+def clear_chat_history():
+    session['chat_history'] = []
+    session.modified = True
+    return jsonify({'success': True})

@@ -703,4 +703,173 @@ function toggleReportDetails(element) {
 }
 </script>
 
+<!-- Chatbot Icon -->
+<div id="chatbot-icon" style="position: fixed; bottom: 20px; right: 20px; background-color: #4CAF50; color: white; border-radius: 50%; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000;">
+    <i class="fas fa-comments" style="font-size: 24px;"></i>
+</div>
+
+<!-- Chatbot Window -->
+<div id="chatbot-window" style="display: none; position: fixed; bottom: 90px; right: 20px; width: 350px; height: 450px; background-color: white; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; flex-direction: column; overflow: hidden;">
+    <div style="background-color: #4CAF50; color: white; padding: 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="margin: 0; font-weight: 500;">FarmBot AI</h4>
+        <div>
+            <button id="refresh-chatbot" style="background: none; border: none; color: white; cursor: pointer; margin-right: 10px;" title="Reset Chat">
+                <i class="fas fa-redo"></i>
+            </button>
+            <button id="close-chatbot" style="background: none; border: none; color: white; cursor: pointer;" title="Close Chat">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <div id="chat-messages" style="flex-grow: 1; padding: 15px; overflow-y: auto; background-color: #f9f9f9;">
+        <div class="message bot-message">Hello! I'm FarmBot AI. How can I help you with your farm today?</div>
+    </div>
+    <div style="padding: 15px; border-top: 1px solid #eee; display: flex;">
+        <input type="text" id="chat-input" placeholder="Type your message..." style="flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; margin-right: 10px; outline: none;">
+        <button id="send-chat" style="background-color: #4CAF50; color: white; border: none; border-radius: 20px; padding: 0 15px; cursor: pointer;">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatbotIcon = document.getElementById('chatbot-icon');
+    const chatbotWindow = document.getElementById('chatbot-window');
+    const closeChatbot = document.getElementById('close-chatbot');
+    const refreshChatbot = document.getElementById('refresh-chatbot');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendChatBtn = document.getElementById('send-chat');
+    
+    // Show initial greeting only if no history exists
+    function loadInitialChat() {
+        fetch('/farmer/chatbot_history')
+            .then(response => response.json())
+            .then(data => {
+                clearChatDisplay();
+                if (data.history && data.history.length > 0) {
+                    // Load existing history
+                    data.history.forEach(msg => {
+                        appendMessage(msg.content, msg.role + '-message');
+                    });
+                } else {
+                    // Show initial greeting
+                    appendMessage("Hello! I'm FarmBot AI. How can I help you with your farm today?", 'bot-message');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading chat history:', error);
+                appendMessage("Hello! I'm FarmBot AI. How can I help you with your farm today?", 'bot-message');
+            });
+    }
+
+    // Clear chat display and reset to initial state
+    function resetChat() {
+        fetch('/farmer/chatbot_clear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                clearChatDisplay();
+                appendMessage("Hello! I'm FarmBot AI. How can I help you with your farm today?", 'bot-message');
+            }
+        })
+        .catch(error => {
+            console.error('Error clearing chat:', error);
+            appendMessage("Failed to reset chat. Please try again.", 'bot-message');
+        });
+    }
+
+    function clearChatDisplay() {
+        chatMessages.innerHTML = '';
+    }
+
+    function appendMessage(text, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', type);
+        messageDiv.textContent = text;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Event listeners
+    chatbotIcon.addEventListener('click', () => {
+        chatbotWindow.style.display = 'flex';
+        chatbotIcon.style.display = 'none';
+        loadInitialChat();
+    });
+
+    closeChatbot.addEventListener('click', () => {
+        chatbotWindow.style.display = 'none';
+        chatbotIcon.style.display = 'flex';
+    });
+
+    refreshChatbot.addEventListener('click', resetChat);
+
+    sendChatBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message) {
+            appendMessage(message, 'user-message');
+            chatInput.value = '';
+            
+            fetch('/farmer/chatbot_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: message }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                appendMessage(data.response, 'bot-message');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                appendMessage('Sorry, I am having trouble connecting right now. Please try again later.', 'bot-message');
+            });
+        }
+    }
+});
+</script>
+
+<style>
+    .message {
+        padding: 8px 12px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+    .user-message {
+        background-color: #4CAF50;
+        color: white;
+        align-self: flex-end;
+        margin-left: auto;
+    }
+    .bot-message {
+        background-color: #e0e0e0;
+        color: #333;
+        align-self: flex-start;
+        margin-right: auto;
+    }
+    #chat-messages {
+        display: flex;
+        flex-direction: column;
+    }
+</style>
+
+
+
 {% endblock %}
