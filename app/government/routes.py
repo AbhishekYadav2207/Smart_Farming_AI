@@ -4,7 +4,7 @@ from app.ai_services import crop_recommendation
 from app.utils.decorators import govt_required, session_required
 from app import db
 from sqlalchemy import or_, func
-from app.utils.helpers import update_farmer_counts
+from app.utils.helpers import update_farmer_counts, update_govt_user_counts
 from app.utils.validation import validate_and_format_phone
 
 govt_bp = Blueprint('government', __name__)
@@ -28,7 +28,8 @@ def dashboard():
     if not govt_user:
         flash('Government user not found', 'error')
         return redirect(url_for('auth.login'))
-
+    
+    update_govt_user_counts(govt_user)
     
     selected_option = request.args.get('option', session.get('selected_option'))
     session['selected_option'] = selected_option
@@ -37,14 +38,8 @@ def dashboard():
     farmer_details_incomplete = False
     farmers = None
     location = Location.query.get(govt_user.location_id)
-
-    farmer_count = Farmer.query.filter_by(location_id=govt_user.location_id).count()
-    active_farmer_count = Farmer.query.filter(
-        Farmer.location_id == govt_user.location_id,
-        Farmer.current_crop_id.isnot(None)
-    ).count()
-    govt_user.no_farmers_active = active_farmer_count
-    db.session.commit()
+    farmer_count = govt_user.no_farmers_assigned or 0
+    active_farmer_count = govt_user.no_farmers_active or 0
 
     if request.method == 'POST':
         if 'option' in request.form:
@@ -309,6 +304,12 @@ def remove_farmer():
         # Safely decrement the count
         if govt_user.no_farmers_assigned:
             govt_user.no_farmers_assigned = max(0, govt_user.no_farmers_assigned - 1)
+
+        if farmer.current_crop_id:
+            crop = Crop.query.get(farmer.current_crop_id)
+            if crop:
+                crop.no_of_farmers = max(0, crop.no_of_farmers - 1)
+            govt_user.no_farmers_active = max(0, govt_user.no_farmers_active - 1)
 
         if farmer.location.no_of_farmers:
             farmer.location.no_of_farmers = max(0, farmer.location.no_of_farmers - 1)

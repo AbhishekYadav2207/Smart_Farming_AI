@@ -5,6 +5,7 @@ from app.admin.forms import RegisterGovtUserForm, RegisterLocationForm
 from app.utils.decorators import admin_required, session_required
 from app import db
 from app.utils.validation import validate_and_format_phone
+from app.utils.helpers import update_govt_user_counts, update_location_users_counts
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -36,6 +37,14 @@ def dashboard():
     location_count = Location.query.count()
     crop_count = Crop.query.count()
 
+    #Update counts of GovtUsers and Locations
+    print("-------------Updating counts for all government users and locations...")
+    govt_users = GovtUser.query.all()
+    farmers = Farmer.query.all()
+    for govt_user in govt_users:
+        update_govt_user_counts(govt_user)
+
+
     if request.method == 'POST':
         if 'option' in request.form:
             selected_option = request.form['option']
@@ -44,6 +53,17 @@ def dashboard():
 
         if 'register_govt' in request.form and selected_option == 'register_govt':
             form = RegisterGovtUserForm()
+            if request.method == 'GET':
+                # Initialize empty location choices
+                form.location_id.choices = [('', 'Enter pincode first')]
+            
+            if request.method == 'POST' and 'pincode' in request.form:
+                # Handle pincode change
+                pincode = request.form['pincode']
+                if len(pincode) == 6:
+                    locations = Location.query.filter_by(pincode=int(pincode)).all()
+                    form.location_id.choices = [(loc.id, f"{loc.name}, {loc.district}") for loc in locations] or [('', 'No locations found')]
+                    
             if form.validate_on_submit():
                 if GovtUser.query.filter_by(id=form.id.data).first():
                     flash('Government user ID already exists', 'error')
@@ -170,16 +190,32 @@ def dashboard():
             # In the GET request section of the dashboard function
 
             elif selected_option == 'view_locations':
+                search_query = request.args.get('search', '').strip()
+                sort_option = request.args.get('sort', 'id_asc')
+                
                 locations_query = Location.query
                 
                 if search_query:
-                    locations_query = locations_query.filter(
-                        or_(
-                            Location.name.ilike(f'%{search_query}%'),
-                            Location.id.ilike(f'%{search_query}%'),
-                            Location.state.ilike(f'%{search_query}%')
+                    try:
+                        # Try converting to integer for ID search
+                        location_id = int(search_query)
+                        locations_query = locations_query.filter(
+                            or_(
+                                Location.id == location_id,
+                                Location.name.ilike(f'%{search_query}%'),
+                                Location.state.ilike(f'%{search_query}%'),
+                                Location.district.ilike(f'%{search_query}%')
+                            )
                         )
-                    )
+                    except ValueError:
+                        # If not a number, search only text fields
+                        locations_query = locations_query.filter(
+                            or_(
+                                Location.name.ilike(f'%{search_query}%'),
+                                Location.state.ilike(f'%{search_query}%'),
+                                Location.district.ilike(f'%{search_query}%')
+                            )
+                        )
                 
                 # Sorting
                 if sort_option == 'id_asc':
@@ -198,15 +234,31 @@ def dashboard():
                 locations = locations_query.all()
 
             elif selected_option == 'view_crops':
+                search_query = request.args.get('search', '').strip()
+                filter_option = request.args.get('filter', '')
+                sort_option = request.args.get('sort', 'id_asc')
+                
                 crops_query = Crop.query
                 
                 if search_query:
-                    crops_query = crops_query.filter(
-                        or_(
-                            Crop.name.ilike(f'%{search_query}%'),
-                            Crop.id.ilike(f'%{search_query}%')
+                    try:
+                        # Try converting to integer for ID search
+                        crop_id = int(search_query)
+                        crops_query = crops_query.filter(
+                            or_(
+                                Crop.id == crop_id,
+                                Crop.name.ilike(f'%{search_query}%'),
+                                Crop.scientific_name.ilike(f'%{search_query}%')
+                            )
                         )
-                    )
+                    except ValueError:
+                        # If not a number, search only text fields
+                        crops_query = crops_query.filter(
+                            or_(
+                                Crop.name.ilike(f'%{search_query}%'),
+                                Crop.scientific_name.ilike(f'%{search_query}%')
+                            )
+                        )
                 
                 # Filtering
                 if filter_option == 'grown':
@@ -230,15 +282,15 @@ def dashboard():
                 
                 crops = crops_query.all()
 
-            # Load default data if no search/filter applied
-            if selected_option == 'view_farmers' and farmers is None:
-                farmers = Farmer.query.order_by(Farmer.id.asc()).all()
-            elif selected_option == 'view_govt_users' and govt_users is None:
-                govt_users = GovtUser.query.order_by(GovtUser.id.asc()).all()
-            elif selected_option == 'view_locations' and locations is None:
-                locations = Location.query.order_by(Location.id.asc()).all()
-            elif selected_option == 'view_crops' and crops is None:
-                crops = Crop.query.order_by(Crop.id.asc()).all()
+        # Load default data if no search/filter applied
+        if selected_option == 'view_farmers' and farmers is None:
+            farmers = Farmer.query.order_by(Farmer.id.asc()).all()
+        elif selected_option == 'view_govt_users' and govt_users is None:
+            govt_users = GovtUser.query.order_by(GovtUser.id.asc()).all()
+        elif selected_option == 'view_locations' and locations is None:
+            locations = Location.query.order_by(Location.id.asc()).all()
+        elif selected_option == 'view_crops' and crops is None:
+            crops = Crop.query.order_by(Crop.id.asc()).all()
 
 
     return render_template(
@@ -354,6 +406,14 @@ def remove_farmer():
         db.session.delete(farmer)
         # Update location's farmer count
         location = Location.query.get(farmer.location_id)  
+        govtuser = GovtUser.query.filter_by(location_id=farmer.location_id).first()
+        if govtuser.no_farmers_assigned:
+            govtuser.no_farmers_assigned = max(0, govtuser.no_of_farmers - 1)
+        if farmer.current_crop_id:
+            crop = Crop.query.get(farmer.current_crop_id)
+            if crop:
+                crop.no_of_farmers = max(0, crop.no_of_farmers - 1)
+            govtuser.no_farmers_active = max(0, govtuser.no_farmers_active - 1)
         if location.no_of_farmers:
         # Ensure no_of_farmers does not go below 0
             location.no_of_farmers = max(0, location.no_of_farmers - 1)
@@ -419,12 +479,6 @@ def remove_crop():
     
     if not crop:
         flash('Crop not found', 'error')
-    elif crop.no_of_farmers > 0:
-        flash('Cannot delete crop with associated farmers', 'error')
-        return redirect(url_for('admin.dashboard', option='view_crops'))
-    elif crop.being_grown:
-        flash('Cannot delete crop that is currently being grown', 'error')
-        return redirect(url_for('admin.dashboard', option='view_crops'))
     else:
         db.session.delete(crop)
         db.session.commit()

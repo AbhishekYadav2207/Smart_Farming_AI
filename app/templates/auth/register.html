@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Registration{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Farmer Registration</h4>
+                </div>
+                <div class="card-body">
+                    <form id="registrationForm" method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                {% for field, errors in form.errors.items() %}
+                                    {% for error in errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.name.label(class="form-label") }}
+                                    {{ form.name(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.user_id.label(class="form-label") }}
+                                    {{ form.user_id(class="form-control") }}
+                                    <small class="text-muted">Unique identification number</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.pincode.label(class="form-label") }}
+                                    {{ form.pincode(class="form-control", id="pincode") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.location_id.label(class="form-label") }}
+                                    <select name="location_id" id="location_id" class="form-control" required>
+                                        <option value="" disabled selected>Enter pincode first</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.phone.label(class="form-label") }}
+                                    {{ form.phone(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.land_area.label(class="form-label") }}
+                            {{ form.land_area(class="form-control") }}
+                            <small class="text-muted">In hectares (optional)</small>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                Register
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pincodeInput = document.getElementById('pincode');
+    const locationSelect = document.getElementById('location_id');
+    
+    // Initialize select
+    locationSelect.disabled = true;
+    
+    // Debounce function
+    function debounce(func, timeout = 500) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+    }
+    
+    const fetchLocations = debounce(async (pincode) => {
+        if (!pincode || pincode.length !== 6 || !/^\d+$/.test(pincode)) {
+            locationSelect.innerHTML = '<option value="" disabled selected>Enter valid 6-digit pincode</option>';
+            locationSelect.disabled = true;
+            return;
+        }
+        
+        try {
+            locationSelect.disabled = true;
+            locationSelect.innerHTML = '<option value="" disabled selected>Loading locations...</option>';
+            
+            const response = await fetch(`/api/locations?pincode=${pincode}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            locationSelect.innerHTML = '';
+            if (data.locations && data.locations.length > 0) {
+                locationSelect.disabled = false;
+                const defaultOption = new Option('Select your location', '', true, true);
+                defaultOption.disabled = true;
+                locationSelect.add(defaultOption);
+                
+                data.locations.forEach(loc => {
+                    locationSelect.add(new Option(
+                        `${loc.name}, ${loc.district}, ${loc.state}`,
+                        loc.id
+                    ));
+                });
+            } else {
+                locationSelect.disabled = true;
+                locationSelect.add(new Option('No locations found', '', true, true));
+            }
+        } catch (error) {
+            console.error('Location loading error:', error);
+            locationSelect.disabled = true;
+            locationSelect.innerHTML = `<option value="" disabled selected>Error: ${error.message}</option>`;
+        }
+    });
+    
+    pincodeInput.addEventListener('input', function() {
+        fetchLocations(this.value);
+    });
+});
+</script>
+{% endblock %}

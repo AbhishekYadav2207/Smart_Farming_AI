@@ -62,12 +62,21 @@
                     <span class="text-danger">{{ error }}</span>
                 {% endfor %}
             </div>
-            <div class="form-group">
-                <label for="location_id" class="form-label">Location ID:</label>
-                {{ form.location_id(class="form-control") }}
-                {% for error in form.location_id.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.pincode.label(class="form-label") }}
+                        {{ form.pincode(class="form-control", id="pincode") }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.location_id.label(class="form-label") }}
+                        <select name="location_id" id="location_id" class="form-control" required>
+                            <option value="" disabled selected>Enter pincode first</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block">
                 <i class="fas fa-user-plus"></i> Register User
@@ -742,5 +751,71 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = "block";
       });
   }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pincodeInput = document.getElementById('pincode');
+    const locationSelect = document.getElementById('location_id');
+    
+    // Initialize select
+    locationSelect.disabled = true;
+    
+    // Debounce function
+    function debounce(func, timeout = 500) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+    }
+    
+    const fetchLocations = debounce(async (pincode) => {
+        if (!pincode || pincode.length !== 6 || !/^\d+$/.test(pincode)) {
+            locationSelect.innerHTML = '<option value="" disabled selected>Enter valid 6-digit pincode</option>';
+            locationSelect.disabled = true;
+            return;
+        }
+        
+        try {
+            locationSelect.disabled = true;
+            locationSelect.innerHTML = '<option value="" disabled selected>Loading locations...</option>';
+            
+            const response = await fetch(`/api/locations?pincode=${pincode}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            locationSelect.innerHTML = '';
+            if (data.locations && data.locations.length > 0) {
+                locationSelect.disabled = false;
+                const defaultOption = new Option('Select your location', '', true, true);
+                defaultOption.disabled = true;
+                locationSelect.add(defaultOption);
+                
+                data.locations.forEach(loc => {
+                    locationSelect.add(new Option(
+                        `${loc.name}, ${loc.district}, ${loc.state}`,
+                        loc.id
+                    ));
+                });
+            } else {
+                locationSelect.disabled = true;
+                locationSelect.add(new Option('No locations found', '', true, true));
+            }
+        } catch (error) {
+            console.error('Location loading error:', error);
+            locationSelect.disabled = true;
+            locationSelect.innerHTML = `<option value="" disabled selected>Error: ${error.message}</option>`;
+        }
+    });
+    
+    pincodeInput.addEventListener('input', function() {
+        fetchLocations(this.value);
+    });
+});
 </script>
 {% endblock %}

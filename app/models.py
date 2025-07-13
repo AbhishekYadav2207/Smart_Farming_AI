@@ -9,8 +9,9 @@ from sqlalchemy import event
 class Location(db.Model):
     __tablename__ = 'locations'
     
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True) 
+    pincode = db.Column(db.Integer, nullable=False)     
+    name = db.Column(db.String(100), nullable=False)
     district = db.Column(db.String(100), nullable=False)
     state = db.Column(db.String(100), nullable=False)
     country = db.Column(db.String(100), default='India')
@@ -67,8 +68,8 @@ class Farmer(User):
     previous_yield = db.Column(db.Float)
     
     location = db.relationship('Location', back_populates='farmers')
-    current_crop = db.relationship('Crop', foreign_keys=[current_crop_id])
-    previous_crop = db.relationship('Crop', foreign_keys=[previous_crop_id])
+    current_crop = db.relationship('Crop', foreign_keys=[current_crop_id], back_populates='farmers_current',overlaps='current_crop_ref')
+    previous_crop = db.relationship('Crop', foreign_keys=[previous_crop_id], back_populates='farmers_previous', overlaps='previous_crop_ref')
     recommendations = db.relationship('Recommendation', 
                                     back_populates='farmer', 
                                     cascade='all, delete-orphan')

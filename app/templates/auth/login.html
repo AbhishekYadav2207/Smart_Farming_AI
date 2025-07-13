@@ -15,6 +15,7 @@
     <div class="card form-container">
         <h2 class="card-title">Sign In</h2>
         <form method="POST" class="form">
+            
             <div class="user-type-selector">
                 <button type="button" value="farmer" class="user-type-btn {% if form.user_type.data == 'farmer' or not form.user_type.data %}active{% endif %}">
                     <i class="fas fa-tractor"></i> Farmer
@@ -44,6 +45,10 @@
             <button type="submit" class="btn btn-primary btn-block">
                 <i class="fas fa-sign-in-alt"></i> Login
             </button>
+
+            <div class="text-center mt-3">
+                <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+            </div>
         </form>
     </div>
 {% endblock %}

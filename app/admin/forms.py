@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, IntegerField
+from wtforms import StringField, PasswordField, IntegerField, SelectField, SubmitField
 from wtforms.validators import DataRequired, Length, Email, Optional, NumberRange
 from wtforms.validators import ValidationError
 from app.models import Location
@@ -10,7 +10,12 @@ class RegisterGovtUserForm(FlaskForm):
     phone = StringField('Phone Number', validators=[DataRequired(), Length(min=10)])
     email = StringField('Email', validators=[Optional()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
-    location_id = IntegerField('Location ID', validators=[DataRequired()])
+    pincode = StringField('Pincode', validators=[
+        DataRequired(),
+        Length(min=6, max=6, message="Must be exactly 6 digits")
+    ])
+    location_id = SelectField('Location', validators=[DataRequired()], choices=[])
+    submit = SubmitField('Register')
 
     def validate_location_id(self, field):
         if not Location.query.get(field.data):
