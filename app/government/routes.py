@@ -95,8 +95,20 @@ def dashboard():
                         if current_crop and current_crop.name in all_crops:
                             all_crops.remove(current_crop.name)
                             
-                        all_crops.append('__NONE__')  # Just the value, no tuple
-                        crop_options = all_crops
+                        total_farmers = Farmer.query.filter_by(location_id=location.id).count() or 1  # avoid divide by zero
+                        crop_opts = []
+                        for crop_name in all_crops:
+                            crop_obj = Crop.query.filter_by(name=crop_name).first()
+                            if crop_obj:
+                                farmers_growing = Farmer.query.filter_by(location_id=location.id, current_crop_id=crop_obj.id).count()
+                                percentage = (farmers_growing / total_farmers) * 100
+                                if percentage >= 40:
+                                    crop_opts.append(f"{crop_name} ⚠️")
+                                else:
+                                    crop_opts.append(crop_name)
+                            
+                        crop_opts.append('__NONE__')  # Just the value, no tuple
+                        crop_options = crop_opts
 
         elif 'save_crop' in request.form:
             farmer_id = request.form['farmer_id']
@@ -403,4 +415,5 @@ def get_user_details():
         user = Farmer.query.get_or_404(user_id)
         return render_template('admin/_farmer_details.html', farmer=user)
     else:
+
         return "Invalid user type", 400
