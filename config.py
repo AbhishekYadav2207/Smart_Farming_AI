@@ -9,13 +9,13 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'e16221919a79e74e0b1f5cee866667991ec26d0aeb3568a4fc7b250db98a6cc5')
     #PostgreSQL configuration for Render
-    # DB_USER = os.getenv('DB_USER')
-    # DB_PASSWORD = urllib.parse.quote_plus(os.getenv('DB_PASSWORD'))
-    # DB_HOST = os.getenv('DB_HOST')
-    # DB_PORT = os.getenv('DB_PORT')
-    # DB_NAME = os.getenv('DB_NAME')
-    # SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///farmers.db')
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = urllib.parse.quote_plus(os.getenv('DB_PASSWORD'))
+    DB_HOST = os.getenv('DB_HOST')
+    DB_PORT = os.getenv('DB_PORT')
+    DB_NAME = os.getenv('DB_NAME')
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    # SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///farmers.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     SESSION_TYPE = 'filesystem'
@@ -27,4 +27,5 @@ class Config:
     SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
     SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to cookies
     SESSION_COOKIE_SAMESITE = 'Lax'  # Prevent CSRF attacks
+
 
