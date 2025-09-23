@@ -6,6 +6,7 @@ from app.utils.decorators import admin_required, session_required
 from app import db
 from app.utils.validation import validate_and_format_phone
 from app.utils.helpers import update_govt_user_counts, update_location_users_counts
+from flask import jsonify, request
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -37,12 +38,12 @@ def dashboard():
     location_count = Location.query.count()
     crop_count = Crop.query.count()
 
-    #Update counts of GovtUsers and Locations
-    print("-------------Updating counts for all government users and locations...")
-    govt_users = GovtUser.query.all()
-    farmers = Farmer.query.all()
-    for govt_user in govt_users:
-        update_govt_user_counts(govt_user)
+    # #Update counts of GovtUsers and Locations
+    # print("-------------Updating counts for all government users and locations...")
+    # govt_users = GovtUser.query.all()
+    # farmers = Farmer.query.all()
+    # for govt_user in govt_users:
+    #     update_govt_user_counts(govt_user)
 
 
     if request.method == 'POST':
@@ -53,63 +54,88 @@ def dashboard():
 
         if 'register_govt' in request.form and selected_option == 'register_govt':
             form = RegisterGovtUserForm()
-            if request.method == 'GET':
-                # Initialize empty location choices
-                form.location_id.choices = [('', 'Enter pincode first')]
             
-            if request.method == 'POST' and 'pincode' in request.form:
-                # Handle pincode change
-                pincode = request.form['pincode']
-                if len(pincode) == 6:
-                    locations = Location.query.filter_by(pincode=int(pincode)).all()
-                    form.location_id.choices = [(loc.id, f"{loc.name}, {loc.district}") for loc in locations] or [('', 'No locations found')]
-                    
             if form.validate_on_submit():
                 if GovtUser.query.filter_by(id=form.id.data).first():
                     flash('Government user ID already exists', 'error')
                 else:
-                    # Check if location exists
-                    location = Location.query.get(form.location_id.data)
-                    if not location:
-                        flash('Location ID does not exist', 'error')
+                    # Validate pincode format
+                    pincode = form.pincode.data
+                    if not pincode.isdigit() or len(pincode) != 6:
+                        flash('Pincode must be a 6-digit number', 'error')
                     else:
-                        phone = form.phone.data
-                        # Validate and format phone number
-                        phone,error = validate_and_format_phone(phone)
-                        if not phone:
-                            flash(error, 'error')
-                            phone = None
-                        new_govt_user = GovtUser(
-                            id=form.id.data,
-                            name=form.name.data,
-                            phone=phone,
-                            email=form.email.data,
-                            password=form.password.data,
-                            location_id=form.location_id.data,
-                            type='govt_user'  # Set type automatically
-                        )
-                        db.session.add(new_govt_user)
-                        # Update location's govt user count
-                        if location.no_of_govt_users is None:
-                            location.no_of_govt_users = 0
-                        nol = location.no_of_govt_users
-                        nol+=1
-                        location.no_of_govt_users = nol
-                        db.session.commit()
-                        flash('Government user registered successfully', 'success')
-                        return redirect(url_for('admin.dashboard'))
+                        # Check if any locations exist for this pincode
+                        locations = Location.query.filter_by(pincode=int(pincode)).all()
+                        if not locations:
+                            flash('No locations found for this pincode. Please add locations first.', 'error')
+                        else:
+                            phone = form.phone.data
+                            # Validate and format phone number
+                            phone, error = validate_and_format_phone(phone)
+                            if not phone:
+                                flash(error, 'error')
+                                phone = None
+                            
+                            new_govt_user = GovtUser(
+                                id=form.id.data,
+                                name=form.name.data,
+                                phone=phone,
+                                email=form.email.data,
+                                password=form.password.data,
+                                pincode=int(pincode),  # Store pincode instead of location_id
+                                type='govt_user'
+                            )
+                            db.session.add(new_govt_user)
+                            
+                            # Update govt user count for all locations under this pincode
+                            for location in locations:
+                                if location.no_of_govt_users is None:
+                                    location.no_of_govt_users = 0
+                                location.no_of_govt_users += 1
+                            
+                            db.session.commit()
+                            flash(f'Government user registered successfully for pincode {pincode}', 'success')
+                            return redirect(url_for('admin.dashboard'))
 
         elif 'register_location' in request.form and selected_option == 'register_location':
             form = RegisterLocationForm()
+            latitude = form.latitude.data if form.latitude.data else 0.00
+            longitude = form.longitude.data if form.longitude.data else 0.00
+
             if form.validate_on_submit():
-                if Location.query.filter_by(id=form.id.data).first():
-                    flash('Location ID already exists', 'error')
+                # Fetch all existing locations with the same pincode
+                existing_locations = Location.query.filter_by(pincode=form.pincode.data).all()
+
+                if existing_locations:
+                    if request.form.get('proceed') == '1':
+                        # Proceed with registration even if locations exist
+                        new_location = Location(
+                            pincode=form.pincode.data,
+                            name=form.name.data,
+                            district=form.district.data,
+                            state=form.state.data,
+                            latitude=latitude,
+                            longitude=longitude,
+                            country='India'
+                        )
+                        db.session.add(new_location)
+                        db.session.commit()
+                        flash('Location registered successfully', 'success')
+                        return redirect(url_for('admin.dashboard'))
+                    else:
+                        # Do not proceed yet, show existing locations first
+                        return render_template('admin/dashboard.html', selected_option='register_location',
+                                            form=form, existing_locations=existing_locations)
                 else:
+                    # No existing locations, just register
                     new_location = Location(
-                        id=form.id.data,
+                        pincode=form.pincode.data,
                         name=form.name.data,
+                        district=form.district.data,
                         state=form.state.data,
-                        country='India'  # Default country
+                        latitude=latitude,
+                        longitude=longitude,
+                        country='India'
                     )
                     db.session.add(new_location)
                     db.session.commit()
@@ -117,7 +143,7 @@ def dashboard():
                     return redirect(url_for('admin.dashboard'))
             else:
                 flash('Please correct the errors in the form', 'error')
-                
+
         elif 'go_back' in request.form:
             session.pop('selected_option', None)
             return redirect(url_for('admin.dashboard'))
@@ -508,3 +534,19 @@ def get_location_details():
     location = Location.query.get_or_404(location_id)
     # Fetch location data and render template or return HTML
     return render_template('admin/_location_details.html', location=location)
+
+@admin_bp.route('/get_crop_details', methods=['GET'])
+@admin_required
+def get_crop_details():
+    crop_id = request.args.get('crop_id')
+    crop = Crop.query.get_or_404(crop_id)
+    return render_template('admin/_crop_details.html', crop=crop)
+
+@admin_bp.route('/get_locations/<int:pincode>', methods=['GET'])
+def get_locations(pincode):
+    locations = Location.query.filter_by(pincode=pincode).all()
+    if locations:
+        data = [{"name": loc.name, "district": loc.district, "state": loc.state} for loc in locations]
+    else:
+        data = []
+    return jsonify(data)

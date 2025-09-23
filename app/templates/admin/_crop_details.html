@@ -1,0 +1,55 @@
+<h3>Crop Details: {{ crop.name }}</h3>
+<div class="details-grid">
+  <div class="detail-item">
+    <span class="detail-label">ID:</span>
+    <span class="detail-value">{{ crop.id }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Scientific Name:</span>
+    <span class="detail-value">{{ crop.scientific_name or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Water Requirements:</span>
+    <span class="detail-value">{{ crop.water_requirements or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Ideal pH:</span>
+    <span class="detail-value">{{ crop.ideal_ph_min or 'N/A' }} - {{ crop.ideal_ph_max or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Being Grown:</span>
+    <span class="detail-value">{{ 'Yes' if crop.being_grown else 'No' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Number of Farmers:</span>
+    <span class="detail-value">{{ crop.no_of_farmers }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">States:</span>
+    <span class="detail-value">{{ crop.states | join(', ') if crop.states else 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Seasons:</span>
+    <span class="detail-value">{{ crop.seasons | join(', ') if crop.seasons else 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Prioritized States:</span>
+    <span class="detail-value">{{ crop.prioritized_states | join(', ') if crop.prioritized_states else 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Prioritized Seasons:</span>
+    <span class="detail-value">{{ crop.prioritized_seasons | join(', ') if crop.prioritized_seasons else 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Total Production:</span>
+    <span class="detail-value">{{ crop.total_production or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Average Area:</span>
+    <span class="detail-value">{{ crop.avg_area or 'N/A' }}</span>
+  </div>
+  <div class="detail-item">
+    <span class="detail-label">Average Yield:</span>
+    <span class="detail-value">{{ crop.avg_yield or 'N/A' }}</span>
+  </div>
+</div>

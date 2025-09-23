@@ -7,14 +7,29 @@
 
 {% block header_actions %}
 <span class="welcome-msg">Welcome, {{ govt_user.name }}</span>
+<span class="pincode-badge">Pincode: {{ govt_user.pincode }}</span>
 <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">
     <i class="fas fa-sign-out-alt"></i> Logout
 </a>
 {% endblock %}
 
 {% block content %}
+<!-- Error Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
 {% if selected_option %}
-    <div class="card">
+    <div class="card navigation-card">
         <form method="POST">
             <button type="submit" name="go_back" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
@@ -22,132 +37,314 @@
         </form>
     </div>
 
+    <!-- Analyze Farmer Section -->
     {% if selected_option == 'analyze' %}
     <div class="card">
-        <h2 class="card-title">Analyze Farmer Data</h2>
+        <h2 class="card-title">
+            <i class="fas fa-search"></i> Analyze Farmer Data
+        </h2>
+        
         {% if farmer_data %}
             {% if farmer_details_incomplete %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> 
-                    First save the details of the farmer from farmer login before accessing the suggested crops.
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Farmer profile is incomplete. Please ensure all soil details (soil type, pH level, nitrogen, phosphorus, potassium) are filled before analysis.
                 </div>
-            {% elif crop_options %}
-                <div class="analysis-result">
-                    <h3><i class="fas fa-lightbulb"></i> Suggested Crops for Farmer {{ farmer_data.id }}</h3>
-                    <ul class="crop-list">
-                        {% for crop_name in crop_options %}
-                            <li>
-                                {% if crop_name != '__NONE__' %}
-                                    {{ crop_name }}
-                                {% else %}
-                                    No Crop Selected
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <form method="POST" action="government/save_crop" class="mt-3">
-                    <div class="form-group">
-                        <label for="selected_crop" class="form-label">Select Crop</label>
-                        <select name="selected_crop" class="form-control" required>
-                            {% for crop_name in crop_options %}
-                                <option value="{{ crop_name }}">
-                                    {% if crop_name != '__NONE__' %}
-                                        {{ crop_name }}
-                                    {% else %}
-                                        No Crop Selected
-                                    {% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
+                
+                <div class="farmer-info-card">
+                    <h4>Farmer Information</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Farmer ID:</label>
+                            <span>{{ farmer_data.id }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Name:</label>
+                            <span>{{ farmer_data.name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Location:</label>
+                            <span>{{ farmer_data.location.name if farmer_data.location else 'Unknown' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Current Crop:</label>
+                            <span>{{ farmer_data.current_crop.name if farmer_data.current_crop else 'None' }}</span>
+                        </div>
                     </div>
-                    <input type="hidden" name="farmer_id" value="{{ farmer_data.id }}">
-                    <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fas fa-save"></i> Save Crop
-                    </button>
-                </form>
+                </div>
+                
+            {% elif crop_options %}
+                <div class="analysis-section">
+                    <div class="farmer-header">
+                        <h3>
+                            <i class="fas fa-lightbulb"></i> 
+                            Recommended Crops for Farmer {{ farmer_data.id }}
+                        </h3>
+                        <span class="farmer-name">{{ farmer_data.name }}</span>
+                    </div>
+
+                    {% if analysis_warning %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        {{ analysis_warning }}
+                    </div>
+                    {% endif %}
+
+                    {% if analysis_error %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        {{ analysis_error }}
+                    </div>
+                    {% endif %}
+
+                    <div class="crop-recommendation-grid">
+                        {% for crop_name in crop_options %}
+                            {% if crop_name != '__NONE__' %}
+                            <div class="crop-card {% if crop_name in low_coverage_crops %}low-coverage{% endif %}" 
+                                 data-crop="{{ crop_name }}" 
+                                 onclick="selectCrop('{{ crop_name }}')">
+                                <div class="crop-header">
+                                    <h4>{{ crop_name }}</h4>
+                                    {% if crop_name in low_coverage_crops %}
+                                    <span class="coverage-warning" title="Low regional coverage - consider diversification">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Low Coverage
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="crop-details">
+                                    {% if crop_metadata and crop_name in crop_metadata %}
+                                    <div class="crop-meta">
+                                        {% if crop_metadata[crop_name].states %}
+                                        <div class="meta-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span class="meta-label">States:</span>
+                                            {{ crop_metadata[crop_name].states|join(', ') }}
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if crop_metadata[crop_name].seasons %}
+                                        <div class="meta-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span class="meta-label">Seasons:</span>
+                                            {{ crop_metadata[crop_name].seasons|join(', ') }}
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if crop_metadata[crop_name].avg_yield %}
+                                        <div class="meta-item">
+                                            <i class="fas fa-chart-line"></i>
+                                            <span class="meta-label">Avg Yield:</span>
+                                            {{ "%.1f"|format(crop_metadata[crop_name].avg_yield) }} t/ha
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <div class="no-metadata">
+                                        <i class="fas fa-info-circle"></i>
+                                        Additional data not available
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="crop-select-indicator">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <form method="POST" action="{{ url_for('government.save_crop') }}" class="crop-selection-form" id="cropForm">
+                        <div class="form-group">
+                            <label for="selected_crop" class="form-label">
+                                <i class="fas fa-seedling"></i> Select Crop for Farmer
+                            </label>
+                            <select name="selected_crop" id="selected_crop" class="form-control" required>
+                                <option value="">-- Choose a crop --</option>
+                                {% for crop_name in crop_options %}
+                                    <option value="{{ crop_name }}">
+                                        {% if crop_name != '__NONE__' %}
+                                            {{ crop_name }}
+                                            {% if crop_name in low_coverage_crops %} (Low Regional Coverage){% endif %}
+                                        {% else %}
+                                            No Crop Selected
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        {% if low_coverage_crops %}
+                        <div class="form-group warning-confirm">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="confirm_low_coverage" id="confirmLowCoverage" required>
+                                <span class="checkmark"></span>
+                                I understand that some recommended crops have low regional coverage and accept the diversification risk
+                            </label>
+                        </div>
+                        {% endif %}
+                        
+                        <input type="hidden" name="farmer_id" value="{{ farmer_data.id }}">
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="saveCropBtn">
+                                <i class="fas fa-save"></i> Save Crop Selection
+                            </button>
+                            <button type="button" onclick="window.location.reload()" class="btn btn-secondary">
+                                <i class="fas fa-sync-alt"></i> Reanalyze
+                            </button>
+                        </div>
+                    </form>
+                </div>
             {% endif %}
         {% else %}
-            <form method="POST" data-ai-processing="true">
-                <div class="form-group">
-                    <label for="farmer_id" class="form-label">Farmer ID</label>
-                    <input type="text" id="farmer_id" name="farmer_id" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">
-                    <i class="fas fa-search"></i> Analyze
-                </button>
-            </form>
+            <div class="analysis-form">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="farmer_id" class="form-label">
+                            <i class="fas fa-user"></i> Farmer ID
+                        </label>
+                        <input type="text" id="farmer_id" name="farmer_id" class="form-control" 
+                               placeholder="Enter farmer ID to analyze" required
+                               pattern="[A-Za-z0-9]+" title="Alphanumeric characters only">
+                    </div>
+                    
+                    <div class="analysis-info">
+                        <h4><i class="fas fa-info-circle"></i> Analysis Includes:</h4>
+                        <ul>
+                            <li>Soil composition and nutrient levels</li>
+                            <li>Local climate and weather patterns</li>
+                            <li>Regional crop diversity and market needs</li>
+                            <li>Sustainability and water requirements</li>
+                            <li>Historical yield data and performance</li>
+                        </ul>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-search"></i> Analyze Farmer Data
+                    </button>
+                </form>
+            </div>
         {% endif %}
     </div>
     {% endif %}
 
-
+    <!-- View Farmers Section -->
     {% if selected_option == 'view_farmers' %}
     <div class="card">
-        <h2 class="card-title">Farmers in {{ govt_user.location }}</h2>
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-users"></i> Farmers in {{ govt_user.pincode }}
+            </h2>
+            <span class="badge badge-info">{{ farmer_count }} total farmers</span>
+        </div>
         
         <div class="search-filter-container">
-            <form method="GET" action="{{ url_for('government.dashboard') }}" class="search-form">
+            <form method="GET" action="{{ url_for('government.dashboard') }}" class="search-form" id="farmerSearchForm">
                 <input type="hidden" name="option" value="view_farmers">
-                <div class="form-group">
-                    <div class="input-with-icon">
-                        <i class="fas fa-search"></i>
-                        <input type="text" name="search" placeholder="Search farmers..." 
-                               value="{{ request.args.get('search', '') }}" class="form-control">
+                
+                <div class="search-row">
+                    <div class="form-group search-group">
+                        <div class="input-with-icon">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="search" placeholder="Search farmers by name, ID, phone, or crop..." 
+                                   value="{{ search_query }}" class="form-control" id="farmerSearch">
+                        </div>
                     </div>
-                </div>
-                <div class="filter-row">
-                    <div class="form-group">
-                        <label class="form-label">Status:</label>
-                        <select name="status" class="form-control">
+                    
+                    <div class="form-group filter-group">
+                        <label class="form-label">Status Filter:</label>
+                        <select name="status" class="form-control" id="statusFilter">
                             <option value="">All Farmers</option>
-                            <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>Active</option>
-                            <option value="incomplete" {% if request.args.get('status') == 'incomplete' %}selected{% endif %}>Incomplete Profile</option>
+                            <option value="active" {% if current_status == 'active' %}selected{% endif %}>Active (Growing Crops)</option>
+                            <option value="incomplete" {% if current_status == 'incomplete' %}selected{% endif %}>Incomplete Profile</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-filter"></i> Apply
-                    </button>
-                    <a href="{{ url_for('government.dashboard', option='view_farmers') }}" class="btn btn-secondary">
-                        <i class="fas fa-sync-alt"></i> Reset
-                    </a>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Apply
+                        </button>
+                        <a href="{{ url_for('government.dashboard', option='view_farmers') }}" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i> Clear
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>
         
         {% if farmers %}
-            <div class="grid-container">
+            <div class="stats-row">
+                <div class="stat-item">
+                    <span class="stat-number">{{ active_farmer_count }}</span>
+                    <span class="stat-label">Active Farmers</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ farmer_count - active_farmer_count }}</span>
+                    <span class="stat-label">Inactive</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ locations|length }}</span>
+                    <span class="stat-label">Locations</span>
+                </div>
+            </div>
+            
+            <div class="farmers-grid" id="farmersGrid">
                 {% for farmer in farmers %}
-                    <div class="data-card">
-                        <div class="data-card-header">
-                            <h3><i class="fas fa-user"></i> {{ farmer.id }}</h3>
-                            <span class="status-badge {% if farmer.soil_type and farmer.crop_selected %}complete{% else %}incomplete{% endif %}">
-                                {% if farmer.soil_type and farmer.current_crop %}Active{% elif farmer.soil_type %}Inactive{% else %}Setup Needed{% endif %}
+                    <div class="farmer-card" data-farmer-id="{{ farmer.id }}" data-status="{% if farmer.current_crop and farmer.soil_type %}active{% elif farmer.soil_type %}inactive{% else %}pending{% endif %}">
+                        <div class="farmer-header">
+                            <h3>{{ farmer.id }}</h3>
+                            <span class="status-badge {% if farmer.current_crop and farmer.soil_type %}status-active{% elif farmer.soil_type %}status-inactive{% else %}status-pending{% endif %}">
+                                {% if farmer.current_crop and farmer.soil_type %}
+                                    <i class="fas fa-check-circle"></i> Active
+                                {% elif farmer.soil_type %}
+                                    <i class="fas fa-pause-circle"></i> Inactive
+                                {% else %}
+                                    <i class="fas fa-exclamation-triangle"></i> Setup Needed
+                                {% endif %}
                             </span>
                         </div>
-                        <div class="data-card-body">
-                            <p><i class="fas fa-user"></i> {{ farmer.name }}</p>
-                            <p><i class="fas fa-phone"></i> {{ farmer.phone }}</p>
-                            {% if farmer.current_crop %}
-                                <p><i class="fas fa-seedling"></i> {{ farmer.current_crop.name }}</p>
-                            {% else %}
-                                <p><i class="fas fa-exclamation-triangle"></i> Crop not selected</p>
+                        
+                        <div class="farmer-body">
+                            <div class="farmer-info">
+                                <p><i class="fas fa-user"></i> <strong>{{ farmer.name }}</strong></p>
+                                <p><i class="fas fa-phone"></i> {{ farmer.phone or 'No phone' }}</p>
+                                <p><i class="fas fa-map-marker-alt"></i> {{ farmer.location.name if farmer.location else 'Unknown location' }}</p>
+                            </div>
+                            
+                            <div class="farmer-crops">
+                                {% if farmer.current_crop %}
+                                    <div class="current-crop">
+                                        <i class="fas fa-seedling"></i> {{ farmer.current_crop.name }}
+                                    </div>
+                                {% endif %}
+                                
+                                {% if farmer.previous_crop %}
+                                    <div class="previous-crop">
+                                        <i class="fas fa-history"></i> Previously: {{ farmer.previous_crop.name }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if farmer.soil_type %}
+                            <div class="soil-info">
+                                <small>Soil: {{ farmer.soil_type }}, pH: {{ farmer.ph_level or 'N/A' }}</small>
+                            </div>
                             {% endif %}
                         </div>
-                        <div class="data-card-footer">
-                            <button onclick="showUserDetails('farmer', '{{ farmer.id }}')" class="btn btn-info btn-sm">
-    <i class="fas fa-eye"></i> View
-  </button>
-                            <a href="{{ url_for('government.edit_farmer', farmer_id=farmer.id) }}" 
-                               class="btn btn-primary btn-sm">
+                        
+                        <div class="farmer-actions">
+                            <button onclick="showUserDetails('farmer', '{{ farmer.id }}')" class="btn btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <a href="{{ url_for('government.edit_farmer', farmer_id=farmer.id) }}" class="btn btn-primary">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
                             <form method="POST" action="{{ url_for('government.remove_farmer') }}" 
-                                  onsubmit="return confirm('Remove this farmer?');"
-                                  style="display: inline;">
+                                  onsubmit="return confirm('Are you sure you want to remove farmer {{ farmer.id }}? This action cannot be undone.');">
                                 <input type="hidden" name="farmer_id" value="{{ farmer.id }}">
-                                <button type="submit" class="btn btn-danger btn-sm">
+                                <button type="submit" class="btn btn-danger">
                                     <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             </form>
@@ -156,41 +353,82 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> No farmers found in your area.
+            <div class="empty-state">
+                <i class="fas fa-users-slash"></i>
+                <h3>No Farmers Found</h3>
+                <p>No farmers match your search criteria in pincode {{ govt_user.pincode }}.</p>
+                {% if search_query or current_status %}
+                    <a href="{{ url_for('government.dashboard', option='view_farmers') }}" class="btn btn-primary">
+                        Clear Filters
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('government.dashboard', option='register_farmer') }}" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Register First Farmer
+                    </a>
+                {% endif %}
             </div>
         {% endif %}
     </div>
     {% endif %}
 
+    <!-- Register Farmer Section -->
     {% if selected_option == 'register_farmer' %}
     <div class="card">
-        <h2 class="card-title">Register New Farmer</h2>
-        <form method="POST">
-            <div class="form-group">
-                <label for="farmer_name">Farmer Name:</label>
-                <input type="text" id="farmer_name" name="new_farmer_name" class="form-control" placeholder="Enter Farmer Name" required>
+        <h2 class="card-title">
+            <i class="fas fa-user-plus"></i> Register New Farmer
+        </h2>
+        
+        <form method="POST" class="farmer-form" id="farmerRegistrationForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="farmer_name" class="form-label required">Farmer Name</label>
+                    <input type="text" id="farmer_name" name="new_farmer_name" class="form-control" 
+                           placeholder="Enter full name" required maxlength="100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="farmer_id" class="form-label required">Farmer ID</label>
+                    <input type="text" name="new_farmer_id" class="form-control" 
+                           placeholder="Enter unique ID" required pattern="[A-Za-z0-9]+" 
+                           title="Alphanumeric characters only" maxlength="50">
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Farmer ID</label>
-                <input type="text" name="new_farmer_id" class="form-control" 
-                       placeholder="Enter unique farmer ID" required>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Phone Number</label>
+                    <input type="tel" name="new_farmer_phone" class="form-control"
+                           placeholder="Enter 10-digit phone number" required pattern="[0-9]{10}"
+                           title="10-digit phone number">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="new_farmer_email" class="form-control"
+                           placeholder="Optional email address" maxlength="100">
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Phone Number</label>
-                <input type="text" name="new_farmer_phone" class="form-control"
-                       placeholder="Enter phone number" required>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="location_id" class="form-label required">Select Location</label>
+                    <select name="location_id" id="location_id" class="form-control" required>
+                        <option value="">-- Select Location --</option>
+                        {% for location in locations %}
+                        <option value="{{ location.id }}">{{ location.name }} - {{ location.district }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Initial Land Area (hectares)</label>
+                    <input type="number" step="0.1" name="area_of_land" class="form-control"
+                           placeholder="Optional" min="0" max="1000">
+                    <small class="form-text">Can be updated later by the farmer</small>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" name="new_farmer_email" class="form-control"
-                       placeholder="Enter email address">
-            <div class="form-group">
-                <label class="form-label">Initial Land Area (hectares)</label>
-                <input type="number" step="0.1" name="area_of_land" class="form-control"
-                       placeholder="Optional" min="0">
-            </div>
-            <div class="button-row">
+            
+            <div class="form-actions">
                 <button type="submit" name="register_farmer" class="btn btn-primary">
                     <i class="fas fa-save"></i> Register Farmer
                 </button>
@@ -202,22 +440,47 @@
     </div>
     {% endif %}
     
+    <!-- Area Settings Section -->
     {% if selected_option == 'area_settings' %}
     <div class="card">
-        <h2 class="card-title">Update Area Details</h2>
+        <h2 class="card-title">
+            <i class="fas fa-cog"></i> Update Area Details
+        </h2>
+        
+        <div class="area-info">
+            <p><i class="fas fa-info-circle"></i> These settings will apply to all locations in pincode {{ govt_user.pincode }}</p>
+        </div>
+        
         <form method="POST">
-            <div class="form-group">
-                <label class="form-label">Annual Rainfall (mm)</label>
-                <input type="number" name="annual_rainfall" 
-                    value="{{ govt_user.location.annual_rainfall }}" 
-                    class="form-control" required>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Annual Rainfall (mm)</label>
+                    <input type="number" name="annual_rainfall" 
+                           value="{{ govt_user.locations[0].annual_rainfall if govt_user.locations and govt_user.locations[0].annual_rainfall else '' }}" 
+                           class="form-control" required min="0" max="10000" step="1"
+                           placeholder="Enter annual rainfall in mm">
+                    <small class="form-text">Average yearly rainfall for agricultural planning</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label required">Average Temperature (°C)</label>
+                    <input type="number" step="0.1" name="average_temperature"
+                           value="{{ govt_user.locations[0].average_temperature if govt_user.locations and govt_user.locations[0].average_temperature else '' }}"
+                           class="form-control" required min="-10" max="50" step="0.1"
+                           placeholder="Enter average temperature">
+                    <small class="form-text">Yearly average temperature for crop suitability</small>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Average Temperature (°C)</label>
-                <input type="number" step="0.1" name="average_temperature"
-                    value="{{ govt_user.location.average_temperature }}"
-                    class="form-control" required>
+            
+            <div class="current-locations">
+                <h4>Affected Locations:</h4>
+                <div class="locations-list">
+                    {% for location in locations %}
+                    <span class="location-tag">{{ location.name }}</span>
+                    {% endfor %}
+                </div>
             </div>
+            
             <button type="submit" name="save_area_details" class="btn btn-primary btn-block">
                 <i class="fas fa-save"></i> Save Area Details
             </button>
@@ -226,59 +489,137 @@
     {% endif %}
     
 {% else %}
-    <div class="farmer-profile-overview">
-        <div class="farmer-profile-card">
-            <h2 class="farmer-profile-title">Area Overview</h2>
-            <div class="farmer-stats-grid">
-                <div class="farmer-stat-item">
+    <!-- Main Dashboard View -->
+    <div class="dashboard-overview">
+        <div class="welcome-card">
+            <h2>Area Overview - Pincode {{ govt_user.pincode }}</h2>
+            <p>Manage farmers and agricultural operations in your assigned region</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon farmers">
                     <i class="fas fa-users"></i>
-                    <span class="farmer-stat-value">{{ govt_user.no_farmers_assigned }}</span>
-                    <span class="farmer-stat-label">Farmers</span>
                 </div>
-                <div class="farmer-stat-item">
-                    <i class="fas fa-seedling"></i>
-                    <span class="farmer-stat-value">{{ govt_user.no_farmers_active }}</span>
-                    <span class="farmer-stat-label">Active Farmers</span>
-                </div>
-                <div class="farmer-stat-item">
-                    <i class="fas fa-tint"></i>
-                    <span class="farmer-stat-value">{{ govt_user.location.annual_rainfall or '--' }}mm</span>
-                    <span class="farmer-stat-label">Rainfall</span>
-                </div>
-                <div class="farmer-stat-item farmer-temperature-item">
-                    <i class="fas fa-temperature-high"></i>
-                    <span class="farmer-stat-value">{{ govt_user.location.average_temperature or '--' }}°C</span>
-                    <span class="farmer-stat-label">Temperature</span>
+                <div class="stat-content">
+                    <h3>{{ govt_user.no_farmers_assigned }}</h3>
+                    <p>Total Farmers</p>
                 </div>
             </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon active">
+                    <i class="fas fa-seedling"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ govt_user.no_farmers_active }}</h3>
+                    <p>Active Farmers</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon locations">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ locations|length }}</h3>
+                    <p>Locations</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon rainfall">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ govt_user.locations[0].annual_rainfall if govt_user.locations and govt_user.locations[0].annual_rainfall else '--' }}</h3>
+                    <p>Rainfall (mm)</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon temperature">
+                    <i class="fas fa-temperature-high"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ govt_user.locations[0].average_temperature if govt_user.locations and govt_user.locations[0].average_temperature else '--' }}</h3>
+                    <p>Temperature (°C)</p>
+                </div>
+            </div>
+            
+            
         </div>
-    </div>
-
-    <div class="card">
-        <h2 class="card-title">Government Options</h2>
-        <div class="action-grid">
-            <form method="POST">
-                <button type="submit" name="option" value="analyze" class="action-card">
-                    <i class="fas fa-search"></i> 
-                    <span>Analyze Farmer</span>
-                </button>
-                <button type="submit" name="option" value="view_farmers" class="action-card">
-                    <i class="fas fa-users"></i>
-                    <span>Manage Farmers</span> 
-                </button>
-                <button type="submit" name="option" value="register_farmer" class="action-card">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Register Farmer</span> 
-                </button>
-                <button type="submit" name="option" value="area_settings" class="action-card">
-                    <i class="fas fa-cog"></i>
-                    <span>Area Settings</span> 
-                </button>
-            </form>
+        <div class="card">
+        <div class="quick-actions-card">
+            <h2 class="card-title">Government Operations</h2>
+            <div class="action-grid">
+                <form method="POST">
+                    <button type="submit" name="option" value="analyze" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-search"></i> 
+                        </div>
+                        <div class="action-content">
+                            <h3>Analyze Farmer</h3>
+                            <p>Get AI-powered crop recommendations</p>
+                        </div>
+                    </button>
+                    
+                    <button type="submit" name="option" value="view_farmers" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Manage Farmers</h3>
+                            <p>View and edit farmer profiles</p>
+                        </div>
+                    </button>
+                    
+                    <button type="submit" name="option" value="register_farmer" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Register Farmer</h3>
+                            <p>Add new farmers to the system</p>
+                        </div>
+                    </button>
+                    
+                    <button type="submit" name="option" value="area_settings" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Area Settings</h3>
+                            <p>Update climate and region data</p>
+                        </div>
+                    </button>
+                </form>
+            </div>
         </div>
+        </div>
+        
+        {% if locations %}
+        <div class="card">
+        <div class="quick-actions-card">
+            <h2 class="card-title">Locations in Your Pincode</h2>
+            <div class="stats-grid">
+                {% for location in locations %}
+                <div class="location-item">
+                    <h4>{{ location.name }}</h4>
+                    <p>{{ location.district }}, {{ location.state }}</p>
+                    <div class="location-stats">
+                        <span class="stat"><i class="fas fa-users"></i> {{ location.no_of_farmers }} farmers</span>
+                        <span class="stat"><i class="fas fa-map-marker-alt"></i> {{ location.officetype or '--' }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        </div>
+        {% endif %}
     </div>
 {% endif %}
 
+<!-- User Details Modal -->
 <div id="userDetailsModal" class="modal">
   <div class="modal-content">
     <span class="close-modal">&times;</span>
@@ -286,173 +627,387 @@
   </div>
 </div>
 
-<style>
-  /* Modal styles */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-  }
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Processing your request...</p>
+    </div>
+</div>
 
-  .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 800px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    color: #000;
-  }
 
-  .close-modal {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  .close-modal:hover {
-    color: black;
-  }
-
-  /* Details grid styles */
-  .details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-  }
-
-  .detail-item {
-    padding: 10px;
-    background: #f5f5f5;
-    border-radius: 5px;
-    color: #000;
-  }
-
-  .detail-label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 5px;
-  }
-
-  /* Dark mode compatibility */
-  @media (prefers-color-scheme: dark) {
-    .modal-content {
-      background-color: #1e1e1e;
-      color: #f0f0f0;
-      border: 1px solid #444;
-      box-shadow: 0 4px 8px rgba(255, 255, 255, 0.05);
-    }
-
-    .close-modal {
-      color: #ccc;
-    }
-
-    .close-modal:hover {
-      color: #fff;
-    }
-
-    .detail-item {
-      background: #2a2a2a;
-      color: #f0f0f0;
-    }
-
-    .detail-label {
-      color: #ffffff;
-    }
-  }
-</style>
 
 <script>
+// Enhanced JavaScript for interactivity
 document.addEventListener('DOMContentLoaded', function() {
-    // Track if we're on main dashboard or sub-page
-    const isMainDashboard = window.location.search.indexOf('option=') === -1;
-    
-    // Set initial history state
-    window.history.replaceState({
-        dashboard: true,
-        isMain: isMainDashboard
-    }, '');
-    
-    // Handle back/forward navigation
-    window.addEventListener('popstate', function(event) {
-        // If not from our dashboard, redirect to login
-        if (!event.state || !event.state.dashboard) {
-            window.location.href = "{{ url_for('auth.login') }}";
-            return;
-        }
-        
-        // If on main dashboard and going back - confirm logout
-        if (event.state.isMain) {
-            if (confirm('Are you sure you want to logout?')) {
-                // Clear session via AJAX before redirect
-                fetch("{{ url_for('auth.logout') }}", {
-                    method: 'GET',
-                    credentials: 'same-origin'
-                }).then(() => {
-                    window.location.href = "{{ url_for('auth.login') }}";
-                });
-            } else {
-                // Stay on page and restore history state
-                window.history.pushState({
-                    dashboard: true,
-                    isMain: true
-                }, '');
-            }
-        } else {
-            // From sub-page - go to main dashboard
-            window.location.href = "{{ url_for(request.endpoint) }}";
-        }
+    // Initialize tooltips
+    const tooltipElements = document.querySelectorAll('[title]');
+    tooltipElements.forEach(el => {
+        el.addEventListener('mouseenter', showTooltip);
+        el.addEventListener('mouseleave', hideTooltip);
     });
     
-    // Update state when navigating to sub-pages
-    document.querySelectorAll('form[method="POST"]').forEach(form => {
-        form.addEventListener('submit', function() {
-            if (this.querySelector('[name="option"]')) {
-                window.history.pushState({
-                    dashboard: true,
-                    isMain: false
-                }, '', window.location.href);
+    // Initialize form validation
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            // Show loading overlay
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // Basic validation
+            const requiredFields = form.querySelectorAll('[required]');
+            let valid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    valid = false;
+                    highlightField(field, false);
+                } else {
+                    highlightField(field, true);
+                }
+            });
+            
+            if (!valid) {
+                e.preventDefault();
+                document.getElementById('loadingOverlay').style.display = 'none';
+                showNotification('Please fill in all required fields', 'error');
             }
         });
     });
-});
-// Get the modal
-  const modal = document.getElementById('userDetailsModal');
-  const modalContent = document.getElementById('modalContent');
-
-  // Get the <span> element that closes the modal
-  const closeBtn = document.querySelector('.close-modal');
-
-  // When the user clicks on <span> (x), close the modal
-  closeBtn.onclick = function() {
-    modal.style.display = "none";
-  }
-
-  // When the user clicks anywhere outside of the modal, close it
-  window.onclick = function(event) {
-    if (event.target == modal) {
-      modal.style.display = "none";
+    
+    // Initialize search functionality
+    const searchInput = document.getElementById('farmerSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(function() {
+            document.getElementById('farmerSearchForm').submit();
+        }, 500));
     }
-  }
+    
+    // Initialize status filter
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            document.getElementById('farmerSearchForm').submit();
+        });
+    }
+    
+    // Initialize crop selection
+    const cropForm = document.getElementById('cropForm');
+    if (cropForm) {
+        const selectedCrop = document.getElementById('selected_crop');
+        const confirmCheckbox = document.getElementById('confirmLowCoverage');
+        
+        if (selectedCrop) {
+            selectedCrop.addEventListener('change', function() {
+                updateCropSelection(this.value);
+            });
+        }
+        
+        if (confirmCheckbox) {
+            cropForm.addEventListener('submit', function(e) {
+                const selectedValue = selectedCrop.value;
+                const isLowCoverage = document.querySelector(`.crop-card[data-crop="${selectedValue}"]`)?.classList.contains('low-coverage');
+                
+                if (isLowCoverage && !confirmCheckbox.checked) {
+                    e.preventDefault();
+                    showNotification('Please confirm your understanding of low coverage crops', 'warning');
+                }
+            });
+        }
+    }
+    
+    // Initialize modal functionality
+    const modal = document.getElementById('userDetailsModal');
+    const closeModalBtn = document.querySelector('.close-modal');
+    
+    if (modal && closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+});
 
-  function showUserDetails(userType, userId) {
+// Utility function to debounce rapid events
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Function to show tooltips
+function showTooltip(e) {
+    const tooltip = e.target.getAttribute('title');
+    if (tooltip) {
+        // Remove default title to prevent double tooltip
+        e.target.setAttribute('data-original-title', tooltip);
+        e.target.removeAttribute('title');
+        
+        // Create and show custom tooltip
+        const tooltipEl = document.createElement('div');
+        tooltipEl.className = 'custom-tooltip';
+        tooltipEl.textContent = tooltip;
+        document.body.appendChild(tooltipEl);
+        
+        // Position tooltip
+        const rect = e.target.getBoundingClientRect();
+        tooltipEl.style.position = 'fixed';
+        tooltipEl.style.left = rect.left + 'px';
+        tooltipEl.style.top = (rect.top - tooltipEl.offsetHeight - 10) + 'px';
+        
+        // Add arrow
+        tooltipEl.style.setProperty('--tooltip-arrow-left', (rect.left + rect.width / 2 - 5) + 'px');
+    }
+}
+
+function hideTooltip(e) {
+    const tooltip = document.querySelector('.custom-tooltip');
+    if (tooltip) {
+        document.body.removeChild(tooltip);
+    }
+    
+    // Restore original title
+    const originalTitle = e.target.getAttribute('data-original-title');
+    if (originalTitle) {
+        e.target.setAttribute('title', originalTitle);
+    }
+}
+
+// Function to highlight form fields
+function highlightField(field, isValid) {
+    if (isValid) {
+        field.style.borderColor = '#28a745';
+        field.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
+    } else {
+        field.style.borderColor = '#dc3545';
+        field.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
+    }
+    
+    // Remove highlighting after a delay
+    setTimeout(() => {
+        field.style.borderColor = '';
+        field.style.boxShadow = '';
+    }, 3000);
+}
+
+// Function to show notifications
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()">&times;</button>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    // Remove after delay
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.parentElement.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Function to select a crop from the grid
+function selectCrop(cropName) {
+    // Update the select element
+    const select = document.getElementById('selected_crop');
+    if (select) {
+        select.value = cropName;
+        updateCropSelection(cropName);
+    }
+}
+
+// Function to update crop selection UI
+function updateCropSelection(cropName) {
+    // Remove selected class from all cards
+    const cards = document.querySelectorAll('.crop-card');
+    cards.forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Add selected class to the chosen crop card
+    const selectedCard = document.querySelector(`.crop-card[data-crop="${cropName}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+        
+        // Scroll to the selected card if not fully in view
+        selectedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// Function to show user details in modal
+function showUserDetails(userType, userId) {
+    // Show a loading state immediately in the modal
+    const modalContent = document.getElementById('modalContent');
+    modalContent.innerHTML = `
+        <div class="modal-header">
+            <h2>Loading ${userType} details...</h2>
+        </div>
+        <div class="modal-body">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading ${userType} information</p>
+            </div>
+        </div>
+    `;
+
+    // Show the modal
+    document.getElementById('userDetailsModal').style.display = 'block';
+
+    // Make an API call to get the user data
     fetch(`/government/get_user_details?user_type=${userType}&user_id=${userId}`)
-      .then(response => response.text())
-      .then(html => {
-        modalContent.innerHTML = html;
-        modal.style.display = "block";
-      });
-  }
+        .then(response => {
+            if (!response.ok) {
+                // If response is not ok (e.g., 404), throw an error
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            // Return the response as plain text (HTML in this case)
+            return response.text(); 
+        })
+        .then(html => {
+            // Once the HTML is received, update the modal with the real content
+            modalContent.innerHTML = html;
+        })
+        .catch(error => {
+            // Handle any errors that occur during the fetch
+            console.error("Error fetching user details:", error);
+            modalContent.innerHTML = `
+                <div class="modal-header">
+                    <h2>Error</h2>
+                </div>
+                <div class="modal-body">
+                    <p>Failed to load user details. Please try again.</p>
+                </div>
+            `;
+        });
+}
+
+// Function to toggle sections
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.classList.toggle('expanded');
+    }
+}
+
+// Function to export data
+function exportData(type, format) {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    // Simulate export process
+    setTimeout(() => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        showNotification(`${type} data exported as ${format.toUpperCase()} successfully`, 'success');
+    }, 1500);
+}
+
+// Add custom tooltip styles
+const tooltipStyle = document.createElement('style');
+tooltipStyle.textContent = `
+    .custom-tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        z-index: 10000;
+        max-width: 200px;
+        word-wrap: break-word;
+        pointer-events: none;
+    }
+    
+    .custom-tooltip::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: var(--tooltip-arrow-left, 50%);
+        transform: translateX(-50%);
+        border-width: 5px 5px 0;
+        border-style: solid;
+        border-color: rgba(0, 0, 0, 0.8) transparent transparent;
+    }
+    
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        background: white;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        z-index: 10000;
+        min-width: 300px;
+        border-left: 4px solid;
+    }
+    
+    .notification.show {
+        transform: translateX(0);
+    }
+    
+    .notification-success {
+        border-color: #28a745;
+        color: #155724;
+    }
+    
+    .notification-error {
+        border-color: #dc3545;
+        color: #721c24;
+    }
+    
+    .notification-warning {
+        border-color: #ffc107;
+        color: #856404;
+    }
+    
+    .notification-info {
+        border-color: #17a2b8;
+        color: #0c5460;
+    }
+    
+    .notification button {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        margin-left: auto;
+        color: inherit;
+        opacity: 0.7;
+    }
+    
+    .notification button:hover {
+        opacity: 1;
+    }
+`;
+document.head.appendChild(tooltipStyle);
 </script>
 {% endblock %}

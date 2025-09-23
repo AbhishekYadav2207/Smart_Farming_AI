@@ -25,7 +25,14 @@ class Location(db.Model):
     no_of_govt_users = db.Column(db.Integer, default=0)
     
     farmers = db.relationship('Farmer', back_populates='location', cascade='all, delete-orphan')
-    govt_users = db.relationship('GovtUser', back_populates='location', cascade='all, delete-orphan')
+
+    # optional: relationship to access users assigned to this pincode
+    govt_users = db.relationship(
+        'GovtUser',
+        primaryjoin='GovtUser.pincode==Location.pincode',
+        back_populates='pincode_obj',
+        viewonly=True
+    )
 
     def __repr__(self):
         return f'<Location {self.name}, {self.state}>'
@@ -97,12 +104,28 @@ class GovtUser(User):
     id = db.Column(db.String(50), db.ForeignKey('users.id'), primary_key=True)
     no_farmers_assigned = db.Column(db.Integer, default=0)
     no_farmers_active = db.Column(db.Integer, default=0)
-    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
+    pincode = db.Column(db.Integer, db.ForeignKey('locations.pincode'), nullable=False)  # instead of location_id
     password_hash = db.Column(db.String(512))
-    
-    location = db.relationship('Location', back_populates='govt_users')
+
+    # relationship to Location via pincode
+    pincode_obj = db.relationship(
+        'Location',
+        primaryjoin='GovtUser.pincode==Location.pincode',
+        back_populates='govt_users',
+        viewonly=True
+    )
     
     __mapper_args__ = {'polymorphic_identity': 'govt_user'}
+
+    @property
+    def locations(self):
+        """Get all locations under this pincode"""
+        return Location.query.filter_by(pincode=self.pincode).all()
+    
+    @property
+    def location_ids(self):
+        """Get all location IDs under this pincode"""
+        return [loc.id for loc in self.locations]
     
     @property
     def password(self):
@@ -117,24 +140,45 @@ class GovtUser(User):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+from sqlalchemy.dialects.postgresql import JSON
+
 class Crop(db.Model):
     __tablename__ = 'crops'
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    being_grown = db.Column(db.Boolean, default=False)
-    no_of_farmers = db.Column(db.Integer, default=0)
     scientific_name = db.Column(db.String(100))
     water_requirements = db.Column(db.Float)
     ideal_ph_min = db.Column(db.Float)
     ideal_ph_max = db.Column(db.Float)
-    
+    nitrogen_req = db.Column(db.Float)
+    phosphorus_req = db.Column(db.Float)
+    potassium_req = db.Column(db.Float)
+    rainfall_req = db.Column(db.Float)
+    temperature_req = db.Column(db.Float)
+
+    being_grown = db.Column(db.Boolean, default=False)
+    no_of_farmers = db.Column(db.Integer, default=0)
+
+    # New fields
+    states = db.Column(JSON, default=[])              # list of states where crop is produced
+    seasons = db.Column(JSON, default=[])             # list of seasons (e.g., ["Kharif", "Rabi"])
+    priority = db.Column(db.Integer, default=0)       # crop priority (higher = more important)
+    prioritized_states = db.Column(JSON, default=[])  # states where crop is given special priority
+    prioritized_seasons = db.Column(JSON, default=[])   # top 50% seasons by production
+
+    # Analytics fields
+    total_production = db.Column(db.Float, default=0.0) # total production across years
+    avg_area = db.Column(db.Float, default=0.0)         # avg area under cultivation
+    avg_yield = db.Column(db.Float, default=0.0)        # production / area ratio
+
     recommendations = db.relationship('Recommendation', back_populates='crop')
     farmers_current = db.relationship('Farmer', foreign_keys='Farmer.current_crop_id', backref='current_crop_ref')
     farmers_previous = db.relationship('Farmer', foreign_keys='Farmer.previous_crop_id', backref='previous_crop_ref')
 
     def __repr__(self):
         return f'<Crop {self.name}>'
+
 
 class Recommendation(db.Model):
     __tablename__ = 'recommendations'

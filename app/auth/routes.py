@@ -42,7 +42,8 @@ def login():
                 
                 # Update last login time
                 session['last_activity'] = datetime.now(ZoneInfo("Asia/Kolkata")).isoformat()
-                farmer.last_login = datetime.now(ZoneInfo("Asia/Kolkata"))
+                farmer.last_login = datetime.utcnow()
+                db.session.flush()  # lightweight, doesn’t finalize whole transaction
                 db.session.commit()
                 return redirect(url_for('farmer.dashboard'))
             else:

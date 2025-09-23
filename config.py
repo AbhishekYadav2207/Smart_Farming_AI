@@ -14,7 +14,7 @@ class Config:
     # DB_HOST = os.getenv('DB_HOST')
     # DB_PORT = os.getenv('DB_PORT')
     # DB_NAME = os.getenv('DB_NAME')
-    # SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    # SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///farmers.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')

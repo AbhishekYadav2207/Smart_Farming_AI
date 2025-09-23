@@ -90,6 +90,10 @@ def dashboard():
     disease_reports_count = db.session.query(DiseaseReport).filter_by(farmer_id=farmer.id).count()
     fertilizer_reports_count = db.session.query(Recommendation).filter_by(farmer_id=farmer.id).count()
 
+    location = farmer.location if farmer.location else "your area"
+    state = location.state if location and location.state else "your state"
+    state = state.title()
+
     if request.method == 'POST':
         if 'option' in request.form:
             if request.form['option'] == 'disease':

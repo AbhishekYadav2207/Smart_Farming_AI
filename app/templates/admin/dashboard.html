@@ -22,124 +22,149 @@
     </div>
 
     {% if selected_option == 'register_govt' %}
-    <div class="card">
-        <h2 class="card-title">Register Government User</h2>
-        <form method="POST">
-            <input type="hidden" name="register_govt" value="1">  <!-- Add this hidden field -->
-            {{ form.hidden_tag() }}  <!-- CSRF token -->
-            <div class="form-group">
-                <label for="name" class="form-label">Name:</label>
-                {{ form.name(class="form-control") }}
-                {% for error in form.name.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="id" class="form-label">User ID</label>
-                {{ form.id(class="form-control") }}
-                {% for error in form.id.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="phone" class="form-label">Phone Number</label>
-                {{ form.phone(class="form-control") }}
-                {% for error in form.phone.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="mail_id" class="form-label">Email</label>
-                {{ form.email(class="form-control") }}
-                {% for error in form.email.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="password" class="form-label">Password</label>
-                {{ form.password(class="form-control") }}
-                {% for error in form.password.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        {{ form.pincode.label(class="form-label") }}
-                        {{ form.pincode(class="form-control", id="pincode") }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        {{ form.location_id.label(class="form-label") }}
-                        <select name="location_id" id="location_id" class="form-control" required>
-                            <option value="" disabled selected>Enter pincode first</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">
-                <i class="fas fa-user-plus"></i> Register User
-            </button>
-        </form>
-    </div>
-    {% endif %}
+<div class="card">
+    <h2 class="card-title">Register Government User</h2>
+    <form method="POST" id="govtRegisterForm">
+        <input type="hidden" name="register_govt" value="1">
+        {{ form.hidden_tag() }}  <!-- CSRF token -->
+        
+        <div class="form-group">
+            <label for="name" class="form-label">Name:</label>
+            {{ form.name(class="form-control") }}
+            {% for error in form.name.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            <label for="id" class="form-label">User ID</label>
+            {{ form.id(class="form-control") }}
+            {% for error in form.id.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            <label for="phone" class="form-label">Phone Number</label>
+            {{ form.phone(class="form-control", placeholder="10-digit number") }}
+            {% for error in form.phone.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            {{ form.email(class="form-control", type="email") }}
+            {% for error in form.email.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            {{ form.password(class="form-control") }}
+            {% for error in form.password.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            <label for="pincode" class="form-label">Pincode</label>
+            {{ form.pincode(class="form-control", id="pincode", maxlength="6", 
+                          oninput="this.value = this.value.replace(/[^0-9]/g, '')") }}
+            {% for error in form.pincode.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+            <small class="form-text text-muted">Enter 6-digit pincode. This user will manage all locations under this pincode.</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">
+            <i class="fas fa-user-plus"></i> Register Government User
+        </button>
+    </form>
+</div>
+{% endif %}
 
     {% if selected_option == 'register_location' %}
-    <div class="card">
-        <h2 class="card-title">Register Location</h2>
-        <form method="POST">
-            <input type="hidden" name="register_location" value="1">  <!-- Add this hidden field -->
-            {{ form.hidden_tag() }}  <!-- CSRF token -->
-            <div class="form-group">
-                <label for="id" class="form-label">Location ID:</label>
-                {{ form.id(class="form-control") }}
-                {% for error in form.id.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
+<div class="card">
+    <h2 class="card-title">Register Location</h2>
+    <form method="POST">
+        <input type="hidden" name="register_location" value="1">
+        {% if existing_locations %}
+            <div class="alert alert-warning">
+                Locations already registered under this pincode:
+                <ul>
+                    {% for loc in existing_locations %}
+                        <li>{{ loc.name }} ({{ loc.district }}, {{ loc.state }})</li>
+                    {% endfor %}
+                </ul>
+                <p>If you still want to register a new location, click Proceed.</p>
             </div>
-            <div class="form-group">
-                <label for="name" class="form-label">Location Name:</label>
-                {{ form.name(class="form-control") }}
-                {% for error in form.name.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="district" class="form-label">District:</label>
-                {{ form.district(class="form-control") }}
-                {% for error in form.district.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="state" class="form-label">State:</label>
-                {{ form.state(class="form-control") }}
-                {% for error in form.state.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            
-            <div class="form-group">
-                <label for="latitude" class="form-label">Latitude:</label>
-                {{ form.latitude(class="form-control") }}
-                {% for error in form.latitude.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                <label for="longitude" class="form-label">Longitude:</label>
-                {{ form.longitude(class="form-control") }}
-                {% for error in form.longitude.errors %}
-                    <span class="text-danger">{{ error }}</span>
-                {% endfor %}
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">
-                <i class="fas fa-user-plus"></i> Register Location
-            </button>
-        </form>
-    </div>
-    {% endif %}
+            <input type="hidden" name="proceed" value="1">
+        {% endif %}
+        {{ form.hidden_tag() }}
+
+        <!-- Pincode -->
+        <div class="form-group">
+    <label for="pincode" class="form-label">Pincode:</label>
+    {{ form.pincode(class="form-control", id="pincode", maxlength="6", 
+                     oninput="this.value = this.value.replace(/[^0-9]/g, '')") }}
+    <div id="existing-locations" class="mt-2"></div>
+    {% for error in form.pincode.errors %}
+        <span class="text-danger">{{ error }}</span>
+    {% endfor %}
+</div>
+
+
+        <!-- Name, District, State, Latitude, Longitude -->
+        <div class="form-group">
+            <label for="name" class="form-label">Location Name:</label>
+            {{ form.name(class="form-control") }}
+            {% for error in form.name.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="district" class="form-label">District:</label>
+            {{ form.district(class="form-control") }}
+            {% for error in form.district.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="state" class="form-label">State:</label>
+            {{ form.state(class="form-control") }}
+            {% for error in form.state.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="latitude" class="form-label">Latitude:</label>
+            {{ form.latitude(class="form-control") }}
+            {% for error in form.latitude.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="longitude" class="form-label">Longitude:</label>
+            {{ form.longitude(class="form-control") }}
+            {% for error in form.longitude.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+    <i class="fas fa-user-plus"></i> Register Location
+</button>
+
+    </form>
+</div>
+{% endif %}
+
 
     {% if selected_option == 'view_farmers' %}
     <div class="card">
@@ -490,6 +515,9 @@
                     <p><i class="fas fa-calendar-check"></i> <strong>No of Farmers:</strong> {{ crop.no_of_farmers }}</p>
                 </div>
                 <div class="data-card-footer">
+                    <button onclick="showCropDetails('{{ crop.id }}')" class="btn btn-info btn-sm">
+                        <i class="fas fa-eye"></i> View
+                    </button>
                     <form method="POST" action="{{ url_for('admin.remove_crop') }}"
                         onsubmit="return confirm('Are you sure you want to remove this crop?');"
                         style="display: inline;">
@@ -751,6 +779,14 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = "block";
       });
   }
+  function showCropDetails(cropId) {
+  fetch(`/admin/get_crop_details?crop_id=${cropId}`)
+    .then(response => response.text())
+    .then(html => {
+      modalContent.innerHTML = html;
+      modal.style.display = "block";
+    });
+}
 </script>
 
 <script>
@@ -817,5 +853,31 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchLocations(this.value);
     });
 });
+
+document.getElementById('pincode').addEventListener('input', function() {
+    let pincode = this.value;
+    let displayDiv = document.getElementById('existing-locations');
+
+    if (pincode.length === 6) {  // Only fetch when pincode is 6 digits
+        fetch(`/get_locations/${pincode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    let html = '<div class="alert alert-warning">';
+                    html += '<strong>Existing locations under this pincode:</strong><ul>';
+                    data.forEach(loc => {
+                        html += `<li>${loc.name} (${loc.district}, ${loc.state})</li>`;
+                    });
+                    html += '</ul>Click Proceed to register a new location if needed.</div>';
+                    displayDiv.innerHTML = html;
+                } else {
+                    displayDiv.innerHTML = '';
+                }
+            });
+    } else {
+        displayDiv.innerHTML = '';
+    }
+});
+
 </script>
 {% endblock %}
