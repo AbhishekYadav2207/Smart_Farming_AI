@@ -429,20 +429,27 @@ def remove_farmer():
     if not farmer:
         flash('Farmer not found', 'error')
     else:
+        location = Location.query.get(farmer.location_id)  # farmer has location_id
         db.session.delete(farmer)
-        # Update location's farmer count
-        location = Location.query.get(farmer.location_id)  
-        govtuser = GovtUser.query.filter_by(location_id=farmer.location_id).first()
-        if govtuser.no_farmers_assigned:
-            govtuser.no_farmers_assigned = max(0, govtuser.no_of_farmers - 1)
+        
+        # Update location's farmer count safely
+        if location and location.no_of_farmers:
+            location.no_of_farmers = max(0, location.no_of_farmers - 1)
+        
+        # Update GovtUser counts by pincode
+        govtuser = GovtUser.query.filter_by(pincode=location.pincode).first() if location else None
+        if govtuser:
+            if hasattr(govtuser, 'no_of_farmers_assigned'):
+                govtuser.no_of_farmers_assigned = max(0, getattr(govtuser, 'no_of_farmers_assigned', 0) - 1)
+            if farmer.current_crop_id and hasattr(govtuser, 'no_farmers_active'):
+                govtuser.no_farmers_active = max(0, getattr(govtuser, 'no_farmers_active', 0) - 1)
+        
+        # Update crop count if applicable
         if farmer.current_crop_id:
             crop = Crop.query.get(farmer.current_crop_id)
-            if crop:
+            if crop and crop.no_of_farmers:
                 crop.no_of_farmers = max(0, crop.no_of_farmers - 1)
-            govtuser.no_farmers_active = max(0, govtuser.no_farmers_active - 1)
-        if location.no_of_farmers:
-        # Ensure no_of_farmers does not go below 0
-            location.no_of_farmers = max(0, location.no_of_farmers - 1)
+        
         db.session.commit()
         flash(f'Farmer {farmer_id} removed successfully', 'success')
 
