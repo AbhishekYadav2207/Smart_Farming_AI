@@ -28,5 +28,3 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to cookies
     SESSION_COOKIE_SAMESITE = 'Lax'  # Prevent CSRF attacks
 
-
-
