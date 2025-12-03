@@ -3,7 +3,7 @@ from config import Config
 import json
 
 genai.configure(api_key=Config.GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 def analyze(crop, nitrogen, phosphorus, potassium, ph_level):
     if not crop:
