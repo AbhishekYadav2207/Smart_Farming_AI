@@ -5,7 +5,7 @@ from app.models import Crop
 from sqlalchemy import func
 
 genai.configure(api_key=Config.GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-flash-latest')
 
 
 def analyze(soil_type, pH_level, rainfall, temperature, location_name,

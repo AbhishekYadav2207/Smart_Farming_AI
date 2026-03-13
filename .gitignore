@@ -3,3 +3,7 @@ migrations/
 modifications.txt
 Testusers.txt
 -------------------------------/
+.env/
+.env
+venv/
+/venv/

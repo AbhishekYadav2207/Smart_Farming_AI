@@ -5,7 +5,7 @@ import json
 import html
 
 genai.configure(api_key=Config.GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-flash-latest')
 
 def get_farmer_data_for_ai(farmer_id):
     """Fetches relevant farmer data from the database."""
