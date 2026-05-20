@@ -6,7 +6,7 @@ from config import Config
 from flask import flash
 
 genai.configure(api_key=Config.GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-flash-latest')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 def analyze(image_file):
     try:
