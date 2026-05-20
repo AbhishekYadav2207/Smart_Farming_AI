@@ -7,3 +7,5 @@ Testusers.txt
 .env
 venv/
 /venv/
+instance/*.db-shm
+instance/*.db-wal
