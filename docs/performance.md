@@ -1,9 +1,9 @@
 ---
-Title: Performance Optimization Reference
-Description: Technical reference for database performance, WAL-mode configurations, AI latency, and caching strategies.
-Audience: Database Administrators, Performance Engineers, System Architects
-Last Updated: 2026-07-10
-Related Documents: [Database](database.md), [Developer Guide](developer-guide.md), [Deployment](deployment.md)
+title: "Performance Optimization Reference"
+description: "Technical reference for database performance, WAL-mode configurations, AI latency, and caching strategies."
+audience: "Database Administrators, Performance Engineers, System Architects"
+last_updated: "2026-07-10"
+related_documents: "[Database](database.md), [Developer Guide](developer-guide.md), [Deployment](deployment.md)"
 ---
 
 # Documentation

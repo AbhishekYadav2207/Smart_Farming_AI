@@ -1,9 +1,9 @@
 ---
-Title: "ADR 0003: Flask-SQLAlchemy ORM with Single-Table Inheritance"
-Description: Architecture Decision Record for using Flask-SQLAlchemy and Single-Table Inheritance to model users.
-Audience: Developers, Database Administrators, Architects
-Last Updated: 2026-07-10
-Related Documents: [Database](../database.md), [Developer Guide](../developer-guide.md)
+title: "ADR 0003: Flask-SQLAlchemy ORM with Single-Table Inheritance"
+description: "Architecture Decision Record for using Flask-SQLAlchemy and Single-Table Inheritance to model users."
+audience: "Developers, Database Administrators, Architects"
+last_updated: "2026-07-10"
+related_documents: "[Database](../database.md), [Developer Guide](../developer-guide.md)"
 ---
 
 # Documentation

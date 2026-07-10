@@ -1,9 +1,9 @@
 ---
-Title: System Architecture
-Description: C4 Model details, MVC implementation, and data flow topologies for Smart Farming AI.
-Audience: System Architects, Core Developers, DevOps Engineers
-Last Updated: 2026-07-10
-Related Documents: [Home](../README.md), [Modules](modules.md), [Database](database.md), [Deployment](deployment.md)
+title: "System Architecture"
+description: "C4 Model details, MVC implementation, and data flow topologies for Smart Farming AI."
+audience: "System Architects, Core Developers, DevOps Engineers"
+last_updated: "2026-07-10"
+related_documents: "[Home](../README.md), [Modules](modules.md), [Database](database.md), [Deployment](deployment.md)"
 ---
 
 # Documentation

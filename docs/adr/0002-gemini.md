@@ -1,9 +1,9 @@
 ---
-Title: "ADR 0002: Google Gemini AI Integration"
-Description: Architecture Decision Record for selecting Google Gemini 2.5 Flash as the primary AI service engine.
-Audience: Developers, Architects, Data Scientists
-Last Updated: 2026-07-10
-Related Documents: [AI Pipelines](../ai-pipelines.md), [Developer Guide](../developer-guide.md)
+title: "ADR 0002: Google Gemini AI Integration"
+description: "Architecture Decision Record for selecting Google Gemini 2.5 Flash as the primary AI service engine."
+audience: "Developers, Architects, Data Scientists"
+last_updated: "2026-07-10"
+related_documents: "[AI Pipelines](../ai-pipelines.md), [Developer Guide](../developer-guide.md)"
 ---
 
 # Documentation

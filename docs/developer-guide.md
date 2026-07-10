@@ -1,9 +1,9 @@
 ---
-Title: Developer Integration Guide
-Description: Deep dive into routing mechanisms, model relations, custom helpers, and local debugging setups.
-Audience: Software Engineers, Code Reviewers, New Contributors
-Last Updated: 2026-07-10
-Related Documents: [Modules](modules.md), [Database](database.md), [Testing](testing.md)
+title: "Developer Integration Guide"
+description: "Deep dive into routing mechanisms, model relations, custom helpers, and local debugging setups."
+audience: "Software Engineers, Code Reviewers, New Contributors"
+last_updated: "2026-07-10"
+related_documents: "[Modules](modules.md), [Database](database.md), [Testing](testing.md)"
 ---
 
 # Documentation

@@ -1,9 +1,9 @@
 ---
-Title: Artificial Intelligence Pipelines
-Description: In-depth analysis of AI pipelines, Gemini prompt layouts, vision pipelines, and fallback layers.
-Audience: ML Engineers, Backend Developers, Data Scientists
-Last Updated: 2026-07-10
-Related Documents: [Modules](modules.md), [Database](database.md), [API](api.md), [Performance](performance.md)
+title: "Artificial Intelligence Pipelines"
+description: "In-depth analysis of AI pipelines, Gemini prompt layouts, vision pipelines, and fallback layers."
+audience: "ML Engineers, Backend Developers, Data Scientists"
+last_updated: "2026-07-10"
+related_documents: "[Modules](modules.md), [Database](database.md), [API](api.md), [Performance](performance.md)"
 ---
 
 # Documentation

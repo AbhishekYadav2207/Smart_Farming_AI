@@ -1,9 +1,9 @@
 ---
-Title: Application Modules Guide
-Description: In-depth documentation of all backend modules, controllers, forms, and utilities.
-Audience: Software Engineers, Core Contributors, Code Reviewers
-Last Updated: 2026-07-10
-Related Documents: [Architecture](architecture.md), [AI Pipelines](ai-pipelines.md), [Database](database.md), [API](api.md)
+title: "Application Modules Guide"
+description: "In-depth documentation of all backend modules, controllers, forms, and utilities."
+audience: "Software Engineers, Core Contributors, Code Reviewers"
+last_updated: "2026-07-10"
+related_documents: "[Architecture](architecture.md), [AI Pipelines](ai-pipelines.md), [Database](database.md), [API](api.md)"
 ---
 
 # Documentation

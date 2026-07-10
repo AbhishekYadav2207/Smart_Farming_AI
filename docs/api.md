@@ -1,9 +1,9 @@
 ---
-Title: API Specifications and Endpoints
-Description: Structured API specs for AJAX endpoints, auth endpoints, disease detection uploaders, and chatbot routes.
-Audience: Frontend Engineers, Integration Developers, QA Teams
-Last Updated: 2026-07-10
-Related Documents: [Modules](modules.md), [Database](database.md), [Security](security.md)
+title: "API Specifications and Endpoints"
+description: "Structured API specs for AJAX endpoints, auth endpoints, disease detection uploaders, and chatbot routes."
+audience: "Frontend Engineers, Integration Developers, QA Teams"
+last_updated: "2026-07-10"
+related_documents: "[Modules](modules.md), [Database](database.md), [Security](security.md)"
 ---
 
 # Documentation

@@ -1,9 +1,9 @@
 ---
-Title: Testing and Quality Assurance
-Description: Reference for manual validation workflows, visual analysis verification, and automated testing setups.
-Audience: QA Teams, Backend Developers, Release Engineers
-Last Updated: 2026-07-10
-Related Documents: [Modules](modules.md), [Developer Guide](developer-guide.md), [Security](security.md)
+title: "Testing and Quality Assurance"
+description: "Reference for manual validation workflows, visual analysis verification, and automated testing setups."
+audience: "QA Teams, Backend Developers, Release Engineers"
+last_updated: "2026-07-10"
+related_documents: "[Modules](modules.md), [Developer Guide](developer-guide.md), [Security](security.md)"
 ---
 
 # Documentation

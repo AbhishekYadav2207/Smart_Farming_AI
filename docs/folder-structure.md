@@ -1,9 +1,9 @@
 ---
-Title: Repository Folder Structure
-Description: File-by-file directory structure, import mappings, and class responsibilities.
-Audience: Contributors, Developers, System Engineers
-Last Updated: 2026-07-10
-Related Documents: [Modules](modules.md), [Database](database.md), [Developer Guide](developer-guide.md)
+title: "Repository Folder Structure"
+description: "File-by-file directory structure, import mappings, and class responsibilities."
+audience: "Contributors, Developers, System Engineers"
+last_updated: "2026-07-10"
+related_documents: "[Modules](modules.md), [Database](database.md), [Developer Guide](developer-guide.md)"
 ---
 
 # Documentation

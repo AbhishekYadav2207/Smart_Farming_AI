@@ -1,9 +1,9 @@
 ---
-Title: "ADR 0001: Flask Web Framework"
-Description: Architecture Decision Record for selecting Flask as the core framework.
-Audience: Developers, Architects
-Last Updated: 2026-07-10
-Related Documents: [Architecture](../architecture.md), [Developer Guide](../developer-guide.md)
+title: "ADR 0001: Flask Web Framework"
+description: "Architecture Decision Record for selecting Flask as the core framework."
+audience: "Developers, Architects"
+last_updated: "2026-07-10"
+related_documents: "[Architecture](../architecture.md), [Developer Guide](../developer-guide.md)"
 ---
 
 # Documentation

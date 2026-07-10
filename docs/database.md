@@ -1,9 +1,9 @@
 ---
-Title: Database Schema and Models
-Description: Comprehensive reference for models, relationships, data fields, constraints, and database events.
-Audience: Database Administrators, Backend Engineers
-Last Updated: 2026-07-10
-Related Documents: [Architecture](architecture.md), [Modules](modules.md), [Developer Guide](developer-guide.md)
+title: "Database Schema and Models"
+description: "Comprehensive reference for models, relationships, data fields, constraints, and database events."
+audience: "Database Administrators, Backend Engineers"
+last_updated: "2026-07-10"
+related_documents: "[Architecture](architecture.md), [Modules](modules.md), [Developer Guide](developer-guide.md)"
 ---
 
 # Documentation

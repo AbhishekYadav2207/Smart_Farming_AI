@@ -1,9 +1,9 @@
 ---
-Title: Production Deployment Configurations
-Description: Reference for containerization, Docker configurations, environment variables, and production reverse proxying.
-Audience: DevOps Engineers, SysAdmins, Infrastructure Teams
-Last Updated: 2026-07-10
-Related Documents: [Architecture](architecture.md), [Security](security.md), [Performance](performance.md)
+title: "Production Deployment Configurations"
+description: "Reference for containerization, Docker configurations, environment variables, and production reverse proxying."
+audience: "DevOps Engineers, SysAdmins, Infrastructure Teams"
+last_updated: "2026-07-10"
+related_documents: "[Architecture](architecture.md), [Security](security.md), [Performance](performance.md)"
 ---
 
 # Documentation

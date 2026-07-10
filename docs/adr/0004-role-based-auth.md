@@ -1,9 +1,9 @@
 ---
-Title: "ADR 0004: Role-Based Access Control and Session Decorators"
-Description: Architecture Decision Record for implementing custom route-level decorators to manage sessions and roles.
-Audience: Developers, Security Engineers, Architects
-Last Updated: 2026-07-10
-Related Documents: [Authentication](../authentication.md), [Security](../security.md)
+title: "ADR 0004: Role-Based Access Control and Session Decorators"
+description: "Architecture Decision Record for implementing custom route-level decorators to manage sessions and roles."
+audience: "Developers, Security Engineers, Architects"
+last_updated: "2026-07-10"
+related_documents: "[Authentication](../authentication.md), [Security](../security.md)"
 ---
 
 # Documentation

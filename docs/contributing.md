@@ -1,9 +1,9 @@
 ---
-Title: Contributing Guidelines
-Description: Open-source contribution standards, branch workflows, coding conventions, and pull request procedures.
-Audience: Contributors, Open Source Developers
-Last Updated: 2026-07-10
-Related Documents: [Home](../README.md), [Roadmap](roadmap.md), [Testing](testing.md)
+title: "Contributing Guidelines"
+description: "Open-source contribution standards, branch workflows, coding conventions, and pull request procedures."
+audience: "Contributors, Open Source Developers"
+last_updated: "2026-07-10"
+related_documents: "[Home](../README.md), [Roadmap](roadmap.md), [Testing](testing.md)"
 ---
 
 # Documentation

@@ -1,9 +1,9 @@
 ---
-Title: Project Roadmap
-Description: Short-term, medium-term, and long-term milestones, scaling strategies, and future AI features.
-Audience: Product Managers, Developers, Stakeholders
-Last Updated: 2026-07-10
-Related Documents: [Home](../README.md), [Architecture](architecture.md), [Performance](performance.md)
+title: "Project Roadmap"
+description: "Short-term, medium-term, and long-term milestones, scaling strategies, and future AI features."
+audience: "Product Managers, Developers, Stakeholders"
+last_updated: "2026-07-10"
+related_documents: "[Home](../README.md), [Architecture](architecture.md), [Performance](performance.md)"
 ---
 
 # Documentation

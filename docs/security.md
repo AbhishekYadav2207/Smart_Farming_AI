@@ -1,9 +1,9 @@
 ---
-Title: Security Specifications and Auditing
-Description: Technical reference for authentication security, password cryptography, session guards, and CSRF protection.
-Audience: Security Architects, Penetration Testers, Core Developers
-Last Updated: 2026-07-10
-Related Documents: [Authentication](authentication.md), [Developer Guide](developer-guide.md)
+title: "Security Specifications and Auditing"
+description: "Technical reference for authentication security, password cryptography, session guards, and CSRF protection."
+audience: "Security Architects, Penetration Testers, Core Developers"
+last_updated: "2026-07-10"
+related_documents: "[Authentication](authentication.md), [Developer Guide](developer-guide.md)"
 ---
 
 # Documentation

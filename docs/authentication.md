@@ -1,9 +1,9 @@
 ---
-Title: Authentication and Access Security
-Description: Deep dive into the RBAC decorators, password hashing configurations, session lifecycle policies, and cookies security.
-Audience: Security Engineers, Backend Developers, Audit Teams
-Last Updated: 2026-07-10
-Related Documents: [Modules](modules.md), [Database](database.md), [Security](security.md)
+title: "Authentication and Access Security"
+description: "Deep dive into the RBAC decorators, password hashing configurations, session lifecycle policies, and cookies security."
+audience: "Security Engineers, Backend Developers, Audit Teams"
+last_updated: "2026-07-10"
+related_documents: "[Modules](modules.md), [Database](database.md), [Security](security.md)"
 ---
 
 # Documentation
