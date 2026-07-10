@@ -334,7 +334,7 @@ sequenceDiagram
 
 ## Physical Deployment Architecture
 
-The physical deployment topology routes client traffic through Nginx web servers into Docker containers hosting Gunicorn WSGI applications connected to PostgreSQL.
+The physical deployment topology routes client traffic through Caddy web servers into Docker containers hosting Gunicorn WSGI applications connected to PostgreSQL.
 
 <!-- IMAGE: assets/diagrams/deployment-topology.png -->
 
@@ -344,7 +344,7 @@ flowchart TD
     
     subgraph CloudServer [Cloud Production Instance]
         subgraph WebTier [Web Proxy Layer]
-            Nginx[Nginx HTTP Proxy]
+            Caddy[Caddy HTTP Proxy]
         end
         
         subgraph ContainerTier [Docker Containers]
@@ -363,8 +363,8 @@ flowchart TD
         Gemini[Gemini 2.5 Flash API]
     end
 
-    Client -->|HTTPS Traffic| Nginx
-    Nginx -->|Proxy pass localhost:5000| Gunicorn
+    Client -->|HTTPS Traffic| Caddy
+    Caddy -->|Proxy pass localhost:5000| Gunicorn
     Gunicorn -->|WSGI Dispatch| FlaskInstance
     FlaskInstance -->|SQLAlchemy connection| Postgres
     FlaskInstance -->|HTTPS egress over internet| Gemini
@@ -385,7 +385,7 @@ The existing implementation supports:
 ## Future Improvements
 
 Planned architectural improvements include:
-- **Nginx & SSL Configuration:** Adding an Nginx reverse proxy configuration and Let's Encrypt SSL layers for secure routing.
+- **Caddy & SSL Configuration:** Adding an Caddy reverse proxy configuration and Let's Encrypt SSL layers for secure routing.
 - **Background Task Workers:** Integrating Celery with Redis to execute AI vision processing out-of-band, mitigating web request timeouts.
 - **Multi-Node Database Replication:** Migrating state data to distributed PostgreSQL instances to scale read operations across multiple locations.
 

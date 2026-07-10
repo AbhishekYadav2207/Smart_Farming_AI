@@ -23,7 +23,7 @@ related_documents: "[Architecture](architecture.md), [Security](security.md), [P
 - [Database Provisioning](#database-provisioning)
 - [Proposed Production Deployment (Future Improvements)](#proposed-production-deployment-future-improvements)
   - [1. Production Gunicorn Configuration](#1-production-gunicorn-configuration)
-  - [2. Nginx Reverse Proxy Server Block](#2-nginx-reverse-proxy-server-block)
+  - [2. Caddy Reverse Proxy Server Block](#2-Caddy-reverse-proxy-server-block)
   - [3. SSL Security Configuration](#3-ssl-security-configuration)
 - [Infrastructure Scaling](#infrastructure-scaling)
 
@@ -37,14 +37,14 @@ The Smart Farming AI platform is containerized using Docker, exposing a Gunicorn
 
 ## Deployment Topology Diagram
 
-The diagram below details the production network topology, routing traffic from clients through Nginx to the containerized Gunicorn server:
+The diagram below details the production network topology, routing traffic from clients through Caddy to the containerized Gunicorn server:
 
 <!-- IMAGE: assets/diagrams/deployment-topology.png -->
 
 ```mermaid
 flowchart TD
-    Client[Client Web Browser] -->|HTTPS Port 443| Nginx[Nginx Reverse Proxy]
-    Nginx -->|Proxy Pass Port 5000| Docker[Docker Container Boundary]
+    Client[Client Web Browser] -->|HTTPS Port 443| Caddy[Caddy Reverse Proxy]
+    Caddy -->|Proxy Pass Port 5000| Docker[Docker Container Boundary]
     
     subgraph Docker [Docker Container Boundary]
         Gunicorn[Gunicorn WSGI Server] -->|Unix Socket / Localport| Flask[Flask Core Engine]
@@ -153,11 +153,11 @@ gunicorn -c gunicorn_config.py run:app
 
 ---
 
-### 2. Nginx Reverse Proxy Server Block
-We recommend deploying Nginx as a reverse proxy in front of Gunicorn to handle static assets and manage client connections:
+### 2. Caddy Reverse Proxy Server Block
+We recommend deploying Caddy as a reverse proxy in front of Gunicorn to handle static assets and manage client connections:
 
-```nginx
-# /etc/nginx/sites-available/smart_farming_ai
+```Caddy
+# /etc/Caddy/sites-available/smart_farming_ai
 server {
     listen 80;
     server_name smartfarming.example.com;
@@ -209,19 +209,19 @@ server {
 To secure user data in transit, we recommend using Certbot to provision Let's Encrypt certificates:
 
 ```bash
-# Install Certbot and the Nginx plugin
+# Install Certbot and the Caddy plugin
 sudo apt update
-sudo apt install certbot python3-certbot-nginx
+sudo apt install certbot python3-certbot-Caddy
 
 # Obtain and configure SSL certificates
-sudo certbot --nginx -d smartfarming.example.com
+sudo certbot --Caddy -d smartfarming.example.com
 ```
 
 ---
 
 ## Infrastructure Scaling
 
-- **Horizontal Scaling:** Run multiple application containers behind an Nginx load balancer. Set up session stickiness or migrate session storage to a shared Redis cluster.
+- **Horizontal Scaling:** Run multiple application containers behind an Caddy load balancer. Set up session stickiness or migrate session storage to a shared Redis cluster.
 - **AI Rate Limits:** Monitor Google Gemini API quotas. If rate limits are reached, implement round-robin routing across multiple API keys.
 
 ---

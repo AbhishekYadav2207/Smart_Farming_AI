@@ -129,7 +129,7 @@ def logout():
 
 ## Future Improvements
 
-- **HTTP Strict Transport Security (HSTS):** Configure Nginx to enforce HTTPS connections by injecting HSTS headers.
+- **HTTP Strict Transport Security (HSTS):** Configure Caddy to enforce HTTPS connections by injecting HSTS headers.
 - **Content Security Policy (CSP):** Implement a strict Content Security Policy to restrict the execution of untrusted external scripts.
 
 ---
